@@ -202,7 +202,7 @@ export default {
   button {
     width: 250px;
     height: 40px;
-    background-color: rgb(1, 45, 58);
+    background-color: #2fd37e;
     outline: none;
     border: none;
     color: white;

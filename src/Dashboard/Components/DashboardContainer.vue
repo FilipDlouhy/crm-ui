@@ -40,11 +40,6 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(
-    circle at 10% 20%,
-    #1e3b5a 0%,
-    // Deep blue
-    #0e1e2e 100.2% // Darker deep blue
-  );
+  background-color: #2c3968;
 }
 </style>
