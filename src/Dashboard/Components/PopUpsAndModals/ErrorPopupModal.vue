@@ -14,13 +14,6 @@
 <script>
 import { mapGetters } from "vuex";
 export default {
-  data() {
-    return {
-      showModal: true,
-      size: "",
-    };
-  },
-  props: ["message"],
   computed: {
     ...mapGetters({
       isModalVisible: "isModalVisible",

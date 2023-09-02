@@ -1,9 +1,9 @@
 <template>
   <div class="dashboard-container">
     <error-popup-modal />
-    <login-form v-if="isUserLogged" />
+    <login-form v-if="!isUserLogged" />
     <user-info-po-up />
-    <main-dashboard v-if="!isUserLogged" />
+    <main-dashboard v-if="isUserLogged" />
   </div>
 </template>
 
