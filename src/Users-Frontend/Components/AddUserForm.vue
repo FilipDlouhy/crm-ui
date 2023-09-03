@@ -37,7 +37,7 @@
         </div>
 
         <div class="user-form-create-button">
-          <button>Create User</button>
+          <button @click="addUser">Create User</button>
         </div>
       </div>
     </div>
@@ -45,6 +45,7 @@
 </template>
 
 <script>
+import axios from "axios";
 import { mapGetters } from "vuex";
 
 export default {
@@ -75,6 +76,68 @@ export default {
       setTimeout(() => {
         this.$store.commit("toggleUserAddForm", false);
       }, 1250);
+    },
+
+    async addUser() {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const telPattern = /^\d{10}$/;
+
+      let error = "";
+
+      switch (true) {
+        case this.firstName.length === 0:
+        case this.lastName.length === 0:
+        case this.email.length === 0:
+        case this.telNumber.length === 0:
+        case this.password.length === 0:
+          error = "Please fill all fields in the form";
+          break;
+
+        case !emailPattern.test(this.email):
+          error = "Please enter a valid email address";
+          break;
+
+        case !telPattern.test(this.telNumber):
+          error = "Please enter a valid telephone number";
+          break;
+
+        case this.password.length < 8:
+          error = "Password should be at least 8 characters long";
+          break;
+      }
+
+      if (error) {
+        this.$store.commit("showModal", error);
+        return;
+      }
+
+      const userDto = {
+        firstName: this.firstName,
+        lastName: this.lastName,
+        email: this.email,
+        telNumber: this.telNumber,
+        password: this.password,
+      };
+      try {
+        const response = await axios.post(
+          "http://localhost:5000/user/user-create",
+          userDto
+        );
+        console.log(response);
+
+        if (response.data.error) {
+          this.$store.commit("showModal", response.data.error);
+        }
+
+        this.$store.dispatch("openInfoPopUp", "User created");
+      } catch (error) {
+        this.$store.commit(
+          "showModal",
+          "Something went wrong we are working on the repair"
+        );
+      }
+
+      this.unShowAddUserForm();
     },
   },
 };

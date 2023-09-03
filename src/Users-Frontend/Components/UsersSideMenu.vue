@@ -2,7 +2,7 @@
   <div>
     <div
       :class="activeMenu === 'users' ? 'selected-service' : 'service'"
-      @click="setUsersAsActiveMenu"
+      @click="setUsersAsActiveMenu, setAsActiveMenuText('/User-Service')"
     >
       <div class="service-name">
         <i class="material-icons"> person_outline </i>
@@ -15,7 +15,10 @@
         :class="
           activeSubMenu === 'users' ? 'selected-sub-service' : 'sub-service'
         "
-        @click="setAsActiveSubMenu('users')"
+        @click="
+          setAsActiveSubMenu('users'),
+            setAsActiveMenuText('/User-Service/Users')
+        "
       >
         <div>
           <i class="material-icons"> people_outline </i>
@@ -27,7 +30,10 @@
         :class="
           activeSubMenu === 'roles' ? 'selected-sub-service' : 'sub-service'
         "
-        @click="setAsActiveSubMenu('roles')"
+        @click="
+          setAsActiveSubMenu('roles'),
+            setAsActiveMenuText('/User-Service/Roles')
+        "
       >
         <div>
           <i class="material-icons"> list_alt </i>
@@ -39,7 +45,10 @@
         :class="
           activeSubMenu === 'audit' ? 'selected-sub-service' : 'sub-service'
         "
-        @click="setAsActiveSubMenu('audit')"
+        @click="
+          setAsActiveSubMenu('audit'),
+            setAsActiveMenuText('/User-Service/Audit')
+        "
       >
         <div>
           <i class="material-icons"> history </i>
@@ -71,6 +80,12 @@ export default {
 
     setAsActiveSubMenu(subMenu) {
       this.$store.commit("setActiveSubMenu", subMenu);
+      localStorage.setItem("activeSubMenu", subMenu);
+    },
+
+    setAsActiveMenuText(subMenuText) {
+      this.$store.commit("setActiveMenuText", subMenuText);
+      localStorage.setItem("activeMenuText", subMenuText);
     },
   },
 };

@@ -7,7 +7,7 @@
 
     <div v-if="activeMenu" class="main-bar">
       <div class="main-bar-top">
-        <p>TechTrack/Users-Service/Users</p>
+        <p>TechTrack{{ activeMenuText }}</p>
       </div>
 
       <users-dashboard />
@@ -29,6 +29,7 @@ export default {
   computed: {
     ...mapGetters({
       activeMenu: "activeMenu",
+      activeMenuText: "activeMenuText",
     }),
   },
 };

@@ -4,6 +4,7 @@
     <login-form v-if="!isUserLogged" />
     <user-info-po-up />
     <main-dashboard v-if="isUserLogged" />
+    <do-you-want-to-modal />
   </div>
 </template>
 
@@ -13,12 +14,14 @@ import LoginForm from "./LoginForm/LoginForm.vue";
 import UserInfoPoUp from "./PopUpsAndModals/InfoPopup.vue";
 import { mapGetters } from "vuex";
 import MainDashboard from "./MainDashboard.vue";
+import DoYouWantToModal from "./PopUpsAndModals/DoYouWantToModal.vue";
 export default {
   components: {
     ErrorPopupModal,
     LoginForm,
     UserInfoPoUp,
     MainDashboard,
+    DoYouWantToModal,
   },
 
   beforeCreate() {

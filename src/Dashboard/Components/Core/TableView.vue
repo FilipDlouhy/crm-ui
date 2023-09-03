@@ -1,66 +1,146 @@
 <template>
   <div class="tableview-bar-dashboard">
     <div class="tableview-bar-dashboard-main-row">
-      <div>
-        <div><input type="checkbox" /></div>
-
-        <p>User name</p>
+      <div v-for="(collumName, index) in rows" :key="index">
+        <div v-if="index === 0">
+          <input type="checkbox" @click="toggleSelectAll" />
+        </div>
+        <p @click="removeFilterDate(collumName)">{{ collumName }}</p>
 
         <span>
-          <i class="material-icons"> expand_less </i>
-          <i class="material-icons"> expand_more </i>
+          <i
+            v-if="
+              filterValues.some((filter) => filter.filterName === collumName)
+            "
+            @click="removeFilterFunc(collumName)"
+            class="material-icons"
+          >
+            filter_alt
+          </i>
         </span>
-      </div>
-
-      <div>
-        <p>Roles</p>
 
         <span>
-          <i class="material-icons"> expand_less </i>
-          <i class="material-icons"> expand_more </i>
-        </span>
-      </div>
+          <i
+            v-if="
+              filterValuesDate.some(
+                (filter) =>
+                  filter.filterName === collumName &&
+                  filter.filterValue === false
+              ) ||
+              !filterValuesDate.some(
+                (filter) => filter.filterName === collumName
+              )
+            "
+            @click="addFilterDate(collumName, false)"
+            class="material-icons tableViewSpanIconShow"
+          >
+            expand_less
+          </i>
 
-      <div>
-        <p>State</p>
+          <div
+            v-if="
+              filterValuesDate.some(
+                (filter) =>
+                  filter.filterName === collumName &&
+                  filter.filterValue === true
+              ) ||
+              !filterValuesDate.some(
+                (filter) => filter.filterName === collumName
+              )
+            "
+          ></div>
 
-        <span>
-          <i class="material-icons"> expand_less </i>
-          <i class="material-icons"> expand_more </i>
-        </span>
-      </div>
+          <i
+            v-if="
+              filterValuesDate.some(
+                (filter) =>
+                  filter.filterName === collumName &&
+                  filter.filterValue === true
+              ) ||
+              !filterValuesDate.some(
+                (filter) => filter.filterName === collumName
+              )
+            "
+            @click="addFilterDate(collumName, true)"
+            class="material-icons tableViewSpanIconShow"
+          >
+            expand_more
+          </i>
 
-      <div>
-        <p>Email</p>
-
-        <span>
-          <i class="material-icons"> expand_less </i>
-          <i class="material-icons"> expand_more </i>
+          <div
+            v-if="
+              filterValuesDate.some(
+                (filter) =>
+                  filter.filterName === collumName &&
+                  filter.filterValue === false
+              ) ||
+              !filterValuesDate.some(
+                (filter) => filter.filterName === collumName
+              )
+            "
+          ></div>
         </span>
       </div>
     </div>
 
-    <div class="tableview-bar-dashboard-nomal-row">
-      <div>
-        <div><input type="checkbox" /></div>
-
-        <p>Phillipe Augustus</p>
-      </div>
-
-      <div>
-        <p>Augustus, Emperor,Augustus, Emperor,</p>
-      </div>
-
-      <div>
-        <p>Pending</p>
-      </div>
-
-      <div>
-        <p>Fi.dlo@emai.com</p>
+    <div
+      class="tableview-bar-dashboard-nomal-row"
+      v-for="(collumValues, MainIndex) in values"
+      :key="MainIndex"
+    >
+      <div v-for="(collumValue, index) in collumValues" :key="index">
+        <div v-if="index === 0">
+          <input type="checkbox" :ref="generateRefName(MainIndex)" />
+        </div>
+        <p>{{ collumValue }}</p>
       </div>
     </div>
   </div>
 </template>
+
+<script>
+export default {
+  data() {
+    return {
+      checkAll: false,
+    };
+  },
+
+  props: {
+    rows: [],
+    values: [],
+    removeFilterFunc: Function,
+    filterValues: [],
+    filterValuesDate: [],
+  },
+
+  methods: {
+    toggleSelectAll() {
+      this.checkAll = !this.checkAll;
+      this.values.map((value, index) => {
+        const refName = this.generateRefName(index);
+
+        this.$refs[refName][0].checked = this.checkAll;
+      });
+    },
+
+    generateRefName(index) {
+      return `normalRowCheckBox${index}`;
+    },
+
+    addFilterDate(collumName, filterValue) {
+      this.$store.commit("addSelectedFilterDateUser", {
+        filterName: collumName,
+        filterValue,
+      });
+    },
+
+    removeFilterDate(collumName) {
+      this.$store.commit("removeSelectedFilterDateUser", collumName);
+    },
+  },
+};
+</script>
 
 <style lang="scss" scoped>
 .tableview-bar-dashboard {
@@ -73,13 +153,13 @@
 
 .tableview-bar-dashboard-main-row {
   width: 1645px; /* taking width larger then the parent's width */
-  height: 40px;
+  height: 45px;
   background-color: #2c3968;
   display: flex;
   flex: 0 0 auto;
 
   div {
-    width: 200px;
+    width: 220px;
     height: 100%;
     display: flex;
     align-items: center;
@@ -99,7 +179,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-
+      margin-right: 5px;
       input {
         cursor: pointer;
         width: 17.5px;
@@ -108,21 +188,44 @@
     }
 
     span {
-      width: 30px;
+      padding-top: 2px;
+      padding-bottom: 2px;
+      width: 20px;
       height: 100%;
       display: flex;
       align-items: center;
+      justify-content: center;
       flex-direction: column;
-      margin-left: 20px;
+      margin-left: 10px;
       i {
-        font-size: 1.25rem;
+        font-size: 1.5rem;
         cursor: pointer;
         transition: 0.3s;
         &:hover {
           color: black;
         }
       }
+
+      div {
+        width: 24px;
+        height: 24px;
+      }
     }
+
+    i {
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+  }
+}
+
+.tableViewSpanIconShow {
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: 0.3s;
+  &:hover {
+    color: black;
   }
 }
 
@@ -132,7 +235,7 @@
   display: flex;
   border-bottom: 1px solid #2c3968;
   div {
-    width: 200px;
+    width: 220px;
     height: 100%;
     display: flex;
     align-items: center;

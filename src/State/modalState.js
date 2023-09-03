@@ -5,6 +5,8 @@ const modalState = {
     isInfoPopupVisible: false,
     infoPopupMessage: "",
     showAnimation: false,
+    showDoYouWantToModal: false,
+    doYouWantToModalMessage: "",
   },
   mutations: {
     showModal(state, message) {
@@ -28,6 +30,16 @@ const modalState = {
     closePopupAnimation(state) {
       state.showAnimation = false;
     },
+
+    showDoYouWantToModal(state, message) {
+      state.showDoYouWantToModal = true;
+      state.doYouWantToModalMessage = message;
+    },
+
+    hideDoYouWantToModal(state) {
+      state.showDoYouWantToModal = false;
+      state.doYouWantToModalMessage = "";
+    },
   },
   actions: {
     openModal({ commit }, message) {
@@ -50,6 +62,13 @@ const modalState = {
     closeInfoPopUp({ commit }) {
       commit("hideInfoPopUp");
     },
+
+    openDoYouWantToModal({ commit }, message) {
+      commit("showDoYouWantToModal", message);
+    },
+    hideDoYouWantToModal({ commit }) {
+      commit("hideDoYouWantToModal");
+    },
   },
   getters: {
     isModalVisible: (state) => state.isModalVisible,
@@ -57,6 +76,8 @@ const modalState = {
     isInfoPopupVisible: (state) => state.isInfoPopupVisible,
     infoPopupMessage: (state) => state.infoPopupMessage,
     showAnimation: (state) => state.showAnimation,
+    doYouWantToModalMessage: (state) => state.doYouWantToModalMessage,
+    showDoYouWantToModal: (state) => state.showDoYouWantToModal,
   },
 };
 export default modalState;
