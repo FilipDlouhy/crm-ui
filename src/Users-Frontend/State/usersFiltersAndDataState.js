@@ -1,8 +1,11 @@
+import axios from "axios";
+
 const userServiceState = {
   state: {
     showUserAddForm: false,
     selectedFiltersUser: [],
     selectedFiltersDatesUser: [],
+    users: [],
   },
   mutations: {
     toggleUserAddForm(state, showForm) {
@@ -46,7 +49,8 @@ const userServiceState = {
       );
     },
 
-    addSelectedFilterDateUser(state, { filterName, filterValue }) {
+    addSelectedFilterDateUser(state, { filterName, ascending }) {
+      console.log({ filterName, ascending });
       let valueChangeObject; // Initialize a variable to hold the object to be updated
       let exists; // Initialize a variable to check if the object already exists
       // Loop through the selectedFiltersDatesUser array to find the object
@@ -60,11 +64,14 @@ const userServiceState = {
 
       // If the object doesn't exist, add it to the selectedFiltersDatesUser array
       if (!exists) {
-        state.selectedFiltersDatesUser.push({ filterName, filterValue });
+        state.selectedFiltersDatesUser.push({
+          filterName,
+          ascending,
+        });
       }
 
       // If the object exists and the value needs to be changed
-      if (exists && valueChangeObject.filterValue !== filterValue) {
+      if (exists && valueChangeObject.ascending !== ascending) {
         // Find the index of the object to delete based on filterName
         const indexToDelete = state.selectedFiltersDatesUser.findIndex(
           (filter) => filter.filterName === filterName
@@ -74,14 +81,30 @@ const userServiceState = {
         state.selectedFiltersDatesUser.splice(indexToDelete, 1);
 
         // Push a new object with the updated filterValue
-        state.selectedFiltersDatesUser.push({ filterName, filterValue });
+        state.selectedFiltersDatesUser.push({
+          filterName,
+          ascending,
+        });
       }
     },
     removeSelectedFilterDateUser(state, filterName) {
       // Use filter method to create a new array without the filter to be removed
+
       state.selectedFiltersDatesUser = state.selectedFiltersDatesUser.filter(
         (filter) => filter.filterName !== filterName
       );
+    },
+    addUser(state, user) {
+      if (state.user.length > 40) {
+        state.user.pop();
+        state.users.push(user);
+      } else {
+        state.users.push(user);
+      }
+    },
+
+    setUsers(state, users) {
+      state.users = users;
     },
   },
   actions: {
@@ -95,17 +118,60 @@ const userServiceState = {
       commit("removeSelectedFilterUser", filterName);
     },
 
-    addSelectedFilterDateUser({ commit }, { filterName, filterValue }) {
-      commit("addSelectedFilterDateUser", { filterName, filterValue });
+    addSelectedFilterDateUser({ commit }, { filterName, ascending }) {
+      commit("addSelectedFilterDateUser", {
+        filterName,
+        ascending,
+      });
     },
     removeSelectedFilterDateUser({ commit }, filterName) {
       commit("removeSelectedFilterDateUser", filterName);
     },
+    addUser({ commit }, user) {
+      commit("addUser", user);
+    },
+
+    async getUsers({ commit }) {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/user/get-users",
+          {
+            withCredentials: true,
+          }
+        );
+
+        commit("setUsers", response.data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    },
+
+    async getUsersWithFilters({ commit, state }) {
+      console.log(state);
+      try {
+        const response = await axios.post(
+          "http://localhost:5000/user/get-users-with-filter",
+          {
+            filters: state.selectedFiltersUser,
+            sortables: state.selectedFiltersDatesUser,
+          },
+          {
+            withCredentials: true,
+          }
+        );
+
+        commit("setUsers", response.data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    },
   },
+
   getters: {
     showUserAddForm: (state) => state.showUserAddForm,
     selectedFiltersUser: (state) => state.selectedFiltersUser,
     selectedFiltersDatesUser: (state) => state.selectedFiltersDatesUser,
+    users: (state) => state.users,
   },
 };
 

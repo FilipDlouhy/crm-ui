@@ -1,99 +1,113 @@
 <template>
   <div class="tableview-bar-dashboard">
-    <div class="tableview-bar-dashboard-main-row">
-      <div v-for="(collumName, index) in rows" :key="index">
-        <div v-if="index === 0">
-          <input type="checkbox" @click="toggleSelectAll" />
+    <div v-if="values.length > 0">
+      <div class="tableview-bar-dashboard-main-row">
+        <div v-for="(collumName, index) in rows" :key="index">
+          <div v-if="index === 0">
+            <input type="checkbox" @click="toggleSelectAll" />
+          </div>
+          <p @click="removeFilterDate(collumName.value)">
+            {{ collumName.displayText }}
+          </p>
+
+          <span>
+            <i
+              v-if="
+                filterValues.some(
+                  (filter) => filter.filterName === collumName.value
+                )
+              "
+              @click="removeFilterFunc(collumName.value)"
+              class="material-icons"
+            >
+              filter_alt
+            </i>
+          </span>
+
+          <span v-if="collumName.sortable === true">
+            <i
+              v-if="
+                filterValuesDate.some(
+                  (filter) =>
+                    filter.filterName === collumName.value &&
+                    filter.ascending === false
+                ) ||
+                !filterValuesDate.some(
+                  (filter) => filter.filterName === collumName.value
+                )
+              "
+              @click="addFilterDate(collumName.value, false)"
+              class="material-icons tableViewSpanIconShow"
+            >
+              expand_less
+            </i>
+
+            <div
+              v-if="
+                filterValuesDate.some(
+                  (filter) =>
+                    filter.filterName === collumName.value &&
+                    filter.ascending === true
+                ) ||
+                !filterValuesDate.some(
+                  (filter) => filter.filterName === collumName.value
+                )
+              "
+            ></div>
+
+            <i
+              v-if="
+                filterValuesDate.some(
+                  (filter) =>
+                    filter.filterName === collumName.value &&
+                    filter.ascending === true
+                ) ||
+                !filterValuesDate.some(
+                  (filter) => filter.filterName === collumName.value
+                )
+              "
+              @click="addFilterDate(collumName.value, true)"
+              class="material-icons tableViewSpanIconShow"
+            >
+              expand_more
+            </i>
+
+            <div
+              v-if="
+                filterValuesDate.some(
+                  (filter) =>
+                    filter.filterName === collumName.value &&
+                    filter.ascending === false
+                ) ||
+                !filterValuesDate.some(
+                  (filter) => filter.filterName === collumName.value
+                )
+              "
+            ></div>
+          </span>
         </div>
-        <p @click="removeFilterDate(collumName)">{{ collumName }}</p>
+      </div>
 
-        <span>
-          <i
-            v-if="
-              filterValues.some((filter) => filter.filterName === collumName)
-            "
-            @click="removeFilterFunc(collumName)"
-            class="material-icons"
-          >
-            filter_alt
-          </i>
-        </span>
-
-        <span>
-          <i
-            v-if="
-              filterValuesDate.some(
-                (filter) =>
-                  filter.filterName === collumName &&
-                  filter.filterValue === false
-              ) ||
-              !filterValuesDate.some(
-                (filter) => filter.filterName === collumName
-              )
-            "
-            @click="addFilterDate(collumName, false)"
-            class="material-icons tableViewSpanIconShow"
-          >
-            expand_less
-          </i>
-
-          <div
-            v-if="
-              filterValuesDate.some(
-                (filter) =>
-                  filter.filterName === collumName &&
-                  filter.filterValue === true
-              ) ||
-              !filterValuesDate.some(
-                (filter) => filter.filterName === collumName
-              )
-            "
-          ></div>
-
-          <i
-            v-if="
-              filterValuesDate.some(
-                (filter) =>
-                  filter.filterName === collumName &&
-                  filter.filterValue === true
-              ) ||
-              !filterValuesDate.some(
-                (filter) => filter.filterName === collumName
-              )
-            "
-            @click="addFilterDate(collumName, true)"
-            class="material-icons tableViewSpanIconShow"
-          >
-            expand_more
-          </i>
-
-          <div
-            v-if="
-              filterValuesDate.some(
-                (filter) =>
-                  filter.filterName === collumName &&
-                  filter.filterValue === false
-              ) ||
-              !filterValuesDate.some(
-                (filter) => filter.filterName === collumName
-              )
-            "
-          ></div>
-        </span>
+      <div
+        class="tableview-bar-dashboard-normal-row"
+        v-for="(collumValues, MainIndex) in renderValues"
+        :key="MainIndex"
+        @click="handleRowClick(MainIndex)"
+      >
+        <div
+          v-for="(collumValue, index) in Object.values(collumValues)"
+          :key="index"
+        >
+          <div v-if="index === 0">
+            <input type="checkbox" :ref="generateRefName(MainIndex)" />
+          </div>
+          <p>{{ formatDateString(collumValue) }}</p>
+        </div>
       </div>
     </div>
 
-    <div
-      class="tableview-bar-dashboard-nomal-row"
-      v-for="(collumValues, MainIndex) in values"
-      :key="MainIndex"
-    >
-      <div v-for="(collumValue, index) in collumValues" :key="index">
-        <div v-if="index === 0">
-          <input type="checkbox" :ref="generateRefName(MainIndex)" />
-        </div>
-        <p>{{ collumValue }}</p>
-      </div>
+    <div v-else class="loading">
+      <p>Loading</p>
     </div>
   </div>
 </template>
@@ -112,6 +126,30 @@ export default {
     removeFilterFunc: Function,
     filterValues: [],
     filterValuesDate: [],
+    addFilterDate: Function,
+    removeFilterDate: Function,
+  },
+
+  computed: {
+    renderValues() {
+      const rowNames = this.rows.map((row) => row.value);
+      const formattedValues = [];
+
+      this.values.map((obj) => {
+        const renderObjs = {};
+        rowNames.map((rowName) => {
+          if (Array.isArray(obj[rowName])) {
+            renderObjs[rowName] = obj[rowName].join(", ");
+          } else {
+            renderObjs[rowName] = obj[rowName];
+          }
+        });
+
+        formattedValues.push(renderObjs);
+      });
+
+      return formattedValues;
+    },
   },
 
   methods: {
@@ -124,25 +162,77 @@ export default {
       });
     },
 
+    handleRowClick(collumnIndex) {
+      console.log(this.values[collumnIndex]);
+    },
     generateRefName(index) {
       return `normalRowCheckBox${index}`;
     },
 
-    addFilterDate(collumName, filterValue) {
-      this.$store.commit("addSelectedFilterDateUser", {
-        filterName: collumName,
-        filterValue,
-      });
-    },
+    formatDateString(inputString) {
+      // Check if the input is a number
+      if (!isNaN(inputString)) {
+        // Return the number as-is
+        return inputString;
+      }
 
-    removeFilterDate(collumName) {
-      this.$store.commit("removeSelectedFilterDateUser", collumName);
+      const dateObject = new Date(inputString);
+
+      if (!isNaN(dateObject.getTime())) {
+        const formattedDate = `${dateObject.getFullYear()}-${String(
+          dateObject.getMonth() + 1
+        ).padStart(2, "0")}-${String(dateObject.getDate()).padStart(
+          2,
+          "0"
+        )} ${String(dateObject.getHours()).padStart(2, "0")}:${String(
+          dateObject.getMinutes()
+        ).padStart(2, "0")}:${String(dateObject.getSeconds()).padStart(
+          2,
+          "0"
+        )}`;
+
+        return formattedDate;
+      } else {
+        // Return the original string if it's not a valid date or number
+        return inputString;
+      }
     },
   },
 };
 </script>
 
 <style lang="scss" scoped>
+.loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  p {
+    font-size: 4rem;
+    &::after {
+      content: "";
+      animation: loading 1.5s infinite;
+    }
+  }
+}
+
+@keyframes loading {
+  0% {
+    content: "";
+  }
+  33% {
+    content: ".";
+  }
+  66% {
+    content: "..";
+  }
+  100% {
+    content: "...";
+  }
+}
+
 .tableview-bar-dashboard {
   width: 1645px;
   height: 820px;
@@ -229,7 +319,7 @@ export default {
   }
 }
 
-.tableview-bar-dashboard-nomal-row {
+.tableview-bar-dashboard-normal-row {
   width: 100%;
   height: 35px;
   display: flex;
@@ -240,6 +330,7 @@ export default {
     display: flex;
     align-items: center;
     word-wrap: break-word;
+    line-break: anywhere;
     color: black;
     font-size: 0.8rem;
     border-right: 1px solid #2c3968;

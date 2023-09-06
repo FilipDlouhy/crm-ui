@@ -16,12 +16,13 @@
       </div>
 
       <div class="main-bar-filter-container">
-        <select v-model="filterName">
-          <option>User name</option>
-          <option>User state</option>
-          <option>Email</option>
-          <option>Roles</option>
-          <option>Telephone</option>
+        <select
+          @change="setIndexOfFilter($event.target.selectedIndex)"
+          v-model="filterName"
+        >
+          <option v-for="(row, index) in filterableUserTableRows" :key="index">
+            {{ row.displayText }}
+          </option>
         </select>
         <input v-model="filterValue" type="text" />
         <button @click="addFilter">Filter</button>
@@ -64,11 +65,13 @@
       </div>
     </div>
     <table-view
-      :rows="['User name', 'User state', 'Email', 'Roles', 'Telephone']"
-      :values="[]"
+      :rows="userTableRows"
+      :values="users"
       :removeFilterFunc="removeFilter"
       :filterValues="selectedFiltersUser"
       :filterValuesDate="selectedFiltersDatesUser"
+      :addFilterDate="addFilterDate"
+      :removeFilterDate="removeFilterDate"
     />
     <table-view-footer />
     <add-user-form v-if="showUserAddForm" />
@@ -83,8 +86,56 @@ import { mapGetters } from "vuex";
 export default {
   data() {
     return {
-      filterName: "",
+      filterName: "First name",
       filterValue: "",
+      userTableRows: [
+        {
+          displayText: "First name",
+          value: "first_name",
+          sortable: true,
+          sortBy: "alphabethical",
+          filterable: true,
+        },
+        {
+          displayText: "Last name",
+          value: "last_name",
+          sortable: true,
+          sortBy: "alphabethical",
+          filterable: true,
+        },
+        {
+          displayText: "User state",
+          value: "state",
+          sortable: true,
+          sortBy: "number",
+        },
+        {
+          displayText: "Email",
+          value: "email",
+          sortable: true,
+          sortBy: "alphabethical",
+
+          filterable: true,
+        },
+        { displayText: "Roles", value: "role_ids", filterable: true },
+        {
+          displayText: "Telephone",
+          value: "tel_number",
+          filterable: true,
+
+          sortable: true,
+          sortBy: "number",
+        },
+        {
+          displayText: "Created",
+          value: "created_at",
+          filterable: false,
+          sortable: true,
+          sortBy: "date",
+        },
+      ],
+
+      selectedIndex: 0,
     };
   },
   components: {
@@ -100,31 +151,66 @@ export default {
       selectedFilters: "selectedFilters",
       selectedFiltersUser: "selectedFiltersUser",
       selectedFiltersDatesUser: "selectedFiltersDatesUser",
+      users: "users",
     }),
+
+    filterableUserTableRows() {
+      return this.userTableRows.filter((row) => row.filterable);
+    },
   },
 
   methods: {
     showAddUserForm() {
       this.$store.commit("toggleUserAddForm", true);
     },
-    addFilter() {
-      if (this.filterValue.length === 0 || this.filterName.length === 0) {
+    async addFilter() {
+      const selectedRow = this.filterableUserTableRows[this.selectedIndex];
+      if (!selectedRow) {
         return;
       }
 
-      this.$store.commit("addSelectedFilterUser", {
-        filterName: this.filterName,
+      await this.$store.commit("addSelectedFilterUser", {
+        filterName: selectedRow.value,
         filterValue: this.filterValue,
       });
+
+      this.filterValue = "";
+
+      await this.$store.dispatch("getUsersWithFilters");
     },
 
-    removeFilter(collumName) {
-      this.$store.commit("removeSelectedFilterUser", collumName);
+    async removeFilter(collumName) {
+      await this.$store.commit("removeSelectedFilterUser", collumName);
+
+      await this.$store.dispatch("getUsersWithFilters");
     },
 
     showRemoveUserForm(message) {
       this.$store.commit("showDoYouWantToModal", message);
     },
+
+    async addFilterDate(collumName, ascending) {
+      await this.$store.commit("addSelectedFilterDateUser", {
+        filterName: collumName,
+        ascending,
+      });
+
+      await this.$store.dispatch("getUsersWithFilters");
+    },
+
+    async removeFilterDate(collumName) {
+      await this.$store.commit("removeSelectedFilterDateUser", collumName);
+
+      await this.$store.dispatch("getUsersWithFilters");
+    },
+
+    setIndexOfFilter(rowIndex) {
+      this.selectedIndex = rowIndex;
+    },
+  },
+
+  async mounted() {
+    this.$store.dispatch("getUsers");
   },
 };
 </script>

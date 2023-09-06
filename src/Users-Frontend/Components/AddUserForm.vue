@@ -118,26 +118,32 @@ export default {
         telNumber: this.telNumber,
         password: this.password,
       };
+
       try {
         const response = await axios.post(
           "http://localhost:5000/user/user-create",
-          userDto
+          userDto,
+          {
+            withCredentials: true,
+          }
         );
-        console.log(response);
+        console.log(response.data);
 
         if (response.data.error) {
           this.$store.commit("showModal", response.data.error);
+          return;
         }
-
+        this.unShowAddUserForm();
         this.$store.dispatch("openInfoPopUp", "User created");
+        this.$store.commit("addUser", response.data);
       } catch (error) {
+        console.log(error);
+
         this.$store.commit(
           "showModal",
           "Something went wrong we are working on the repair"
         );
       }
-
-      this.unShowAddUserForm();
     },
   },
 };

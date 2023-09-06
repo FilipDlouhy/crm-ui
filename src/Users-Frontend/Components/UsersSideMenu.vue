@@ -40,21 +40,6 @@
           <p>Roles</p>
         </div>
       </div>
-
-      <div
-        :class="
-          activeSubMenu === 'audit' ? 'selected-sub-service' : 'sub-service'
-        "
-        @click="
-          setAsActiveSubMenu('audit'),
-            setAsActiveMenuText('/User-Service/Audit')
-        "
-      >
-        <div>
-          <i class="material-icons"> history </i>
-          <p>Audit</p>
-        </div>
-      </div>
     </div>
   </div>
 </template>
