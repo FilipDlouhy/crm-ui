@@ -5,7 +5,7 @@
         <p>{{ doYouWantToModalMessage }}</p>
       </div>
       <div class="icon-container">
-        <button @click="unShowPopup">Yes</button>
+        <button @click="doActionPopup">Yes</button>
         <button @click="unShowPopup">No</button>
       </div>
     </div>
@@ -19,10 +19,28 @@ export default {
     ...mapGetters({
       showDoYouWantToModal: "showDoYouWantToModal",
       doYouWantToModalMessage: "doYouWantToModalMessage",
+      doYouWantToModalFunction: "doYouWantToModalFunction",
     }),
   },
 
   methods: {
+    async doActionPopup() {
+      this.$store.commit("hideDoYouWantToModal");
+      const response = await this.$store.dispatch(
+        this.doYouWantToModalFunction
+      );
+
+      if (response.data.error === false) {
+        this.$store.dispatch("openInfoPopUp", response.data.message);
+        return;
+      }
+
+      if (response.data.error.length > 0) {
+        this.$store.commit("showModal", response.data.error);
+        return;
+      }
+    },
+
     unShowPopup() {
       this.$store.commit("hideDoYouWantToModal");
     },

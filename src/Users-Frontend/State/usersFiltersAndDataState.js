@@ -6,6 +6,8 @@ const userServiceState = {
     selectedFiltersUser: [],
     selectedFiltersDatesUser: [],
     users: [],
+    usersToChange: [],
+    stateToChange: null,
   },
   mutations: {
     toggleUserAddForm(state, showForm) {
@@ -95,16 +97,27 @@ const userServiceState = {
       );
     },
     addUser(state, user) {
-      if (state.user.length > 40) {
+      if (state.users.length > 40) {
         state.user.pop();
         state.users.push(user);
       } else {
         state.users.push(user);
       }
+
+      console.log(user);
+      console.log(state.users);
     },
 
     setUsers(state, users) {
       state.users = users;
+    },
+
+    setUsersToChange(state, usersToChange) {
+      state.usersToChange = usersToChange;
+    },
+
+    setStateToChange(state, newState) {
+      state.stateToChange = newState;
     },
   },
   actions: {
@@ -147,7 +160,6 @@ const userServiceState = {
     },
 
     async getUsersWithFilters({ commit, state }) {
-      console.log(state);
       try {
         const response = await axios.post(
           "http://localhost:5000/user/get-users-with-filter",
@@ -165,6 +177,94 @@ const userServiceState = {
         console.error("Error fetching users:", error);
       }
     },
+
+    setUsersToChange({ commit }, usersToChange) {
+      commit("setUsersToChange", usersToChange);
+    },
+
+    async deleteUsers({ commit, state }) {
+      console.log(state.usersToChange.length);
+      let response;
+      if (state.usersToChange.length === 1) {
+        response = await axios.get("http://localhost:5000/user/delete-user", {
+          params: {
+            userId: state.usersToChange[0], // Replace paramName and paramValue with your query parameter name and value
+          },
+          withCredentials: true, // Include this if you need to send cookies or credentials
+        });
+      } else {
+        response = await axios.post(
+          "http://localhost:5000/user/delete-users",
+          {
+            users: state.usersToChange,
+          },
+          {
+            withCredentials: true,
+          }
+        );
+      }
+
+      if (response.data.error === false) {
+        const newUsers = state.users.filter((user) => {
+          return !state.usersToChange.includes(user.user_id);
+        });
+
+        commit("setUsers", newUsers);
+        return response;
+      }
+
+      if (response.data.error.length > 0) {
+        return response;
+      }
+
+      return response;
+    },
+
+    async updateUsersState({ commit, state }) {
+      let response;
+
+      if (state.usersToChange.length === 1) {
+        response = await axios.get(
+          "http://localhost:5000/user/update-user-state",
+          {
+            params: {
+              userId: state.usersToChange[0],
+              userState: state.stateToChange,
+            },
+            withCredentials: true,
+          }
+        );
+      } else {
+        response = await axios.post(
+          "http://localhost:5000/user/update-users-state",
+          {
+            users: state.usersToChange,
+            userState: state.stateToChange,
+          },
+          {
+            withCredentials: true,
+          }
+        );
+      }
+
+      if (response.data.error === false) {
+        const newUsers = state.users.filter((user) => {
+          if (state.usersToChange.includes(user.user_id)) {
+            user.state = state.stateToChange;
+            return user;
+          } else {
+            return user;
+          }
+        });
+        commit("setUsers", newUsers);
+
+        return response;
+      }
+    },
+
+    setStateToChange({ commit }, newState) {
+      commit("setStateToChange", newState);
+    },
   },
 
   getters: {
@@ -172,6 +272,8 @@ const userServiceState = {
     selectedFiltersUser: (state) => state.selectedFiltersUser,
     selectedFiltersDatesUser: (state) => state.selectedFiltersDatesUser,
     users: (state) => state.users,
+    usersToChange: (state) => state.usersToChange,
+    stateToChange: (state) => state.stateToChange,
   },
 };
 

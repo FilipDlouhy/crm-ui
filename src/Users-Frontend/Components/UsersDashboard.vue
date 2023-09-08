@@ -30,7 +30,12 @@
 
       <div class="main-bar-service-button-container">
         <button
-          @click="showRemoveUserForm('Do you want to change state to pending ')"
+          @click="
+            showUserChangeStateForm(
+              'Do you want to change state to pending ',
+              1
+            )
+          "
         >
           Change to pending
 
@@ -38,7 +43,12 @@
         </button>
 
         <button
-          @click="showRemoveUserForm('Do you want to change state to active ')"
+          @click="
+            showUserChangeStateForm(
+              'Do you want to change state to pending ',
+              2
+            )
+          "
         >
           Change to Active
 
@@ -46,7 +56,12 @@
         </button>
 
         <button
-          @click="showRemoveUserForm('Do you want to change state to blocked ')"
+          @click="
+            showUserChangeStateForm(
+              'Do you want to change state to pending ',
+              0
+            )
+          "
         >
           Change to Block
 
@@ -72,6 +87,8 @@
       :filterValuesDate="selectedFiltersDatesUser"
       :addFilterDate="addFilterDate"
       :removeFilterDate="removeFilterDate"
+      :idOfValueToChangeBy="'user_id'"
+      :setValuesToChange="setValuesToChange"
     />
     <table-view-footer />
     <add-user-form v-if="showUserAddForm" />
@@ -152,6 +169,7 @@ export default {
       selectedFiltersUser: "selectedFiltersUser",
       selectedFiltersDatesUser: "selectedFiltersDatesUser",
       users: "users",
+      usersToChange: "usersToChange",
     }),
 
     filterableUserTableRows() {
@@ -164,6 +182,10 @@ export default {
       this.$store.commit("toggleUserAddForm", true);
     },
     async addFilter() {
+      if (this.filterValue.length === 0) {
+        return;
+      }
+
       const selectedRow = this.filterableUserTableRows[this.selectedIndex];
       if (!selectedRow) {
         return;
@@ -186,7 +208,21 @@ export default {
     },
 
     showRemoveUserForm(message) {
+      if (this.usersToChange.length === 0) {
+        return;
+      }
       this.$store.commit("showDoYouWantToModal", message);
+      this.$store.dispatch("setDoYouWantToModalFunction", "deleteUsers");
+    },
+
+    showUserChangeStateForm(message, stateToChange) {
+      if (this.usersToChange.length === 0) {
+        return;
+      }
+      this.$store.dispatch("setStateToChange", stateToChange);
+
+      this.$store.commit("showDoYouWantToModal", message);
+      this.$store.dispatch("setDoYouWantToModalFunction", "updateUsersState");
     },
 
     async addFilterDate(collumName, ascending) {
@@ -206,6 +242,10 @@ export default {
 
     setIndexOfFilter(rowIndex) {
       this.selectedIndex = rowIndex;
+    },
+
+    setValuesToChange(valuesToChange) {
+      this.$store.dispatch("setUsersToChange", valuesToChange);
     },
   },
 

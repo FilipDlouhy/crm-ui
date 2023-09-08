@@ -7,6 +7,7 @@ const modalState = {
     showAnimation: false,
     showDoYouWantToModal: false,
     doYouWantToModalMessage: "",
+    doYouWantToModalFunction: "",
   },
   mutations: {
     showModal(state, message) {
@@ -40,6 +41,9 @@ const modalState = {
       state.showDoYouWantToModal = false;
       state.doYouWantToModalMessage = "";
     },
+    setDoYouWantToModalFunction(state, func) {
+      state.doYouWantToModalFunction = func;
+    },
   },
   actions: {
     openModal({ commit }, message) {
@@ -69,6 +73,10 @@ const modalState = {
     hideDoYouWantToModal({ commit }) {
       commit("hideDoYouWantToModal");
     },
+
+    setDoYouWantToModalFunction({ commit }, func) {
+      commit("setDoYouWantToModalFunction", func);
+    },
   },
   getters: {
     isModalVisible: (state) => state.isModalVisible,
@@ -78,6 +86,7 @@ const modalState = {
     showAnimation: (state) => state.showAnimation,
     doYouWantToModalMessage: (state) => state.doYouWantToModalMessage,
     showDoYouWantToModal: (state) => state.showDoYouWantToModal,
+    doYouWantToModalFunction: (state) => state.doYouWantToModalFunction,
   },
 };
 export default modalState;

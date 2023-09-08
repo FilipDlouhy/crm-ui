@@ -1,113 +1,115 @@
 <template>
   <div class="tableview-bar-dashboard">
-    <div v-if="values.length > 0">
-      <div class="tableview-bar-dashboard-main-row">
-        <div v-for="(collumName, index) in rows" :key="index">
-          <div v-if="index === 0">
-            <input type="checkbox" @click="toggleSelectAll" />
-          </div>
-          <p @click="removeFilterDate(collumName.value)">
-            {{ collumName.displayText }}
-          </p>
-
-          <span>
-            <i
-              v-if="
-                filterValues.some(
-                  (filter) => filter.filterName === collumName.value
-                )
-              "
-              @click="removeFilterFunc(collumName.value)"
-              class="material-icons"
-            >
-              filter_alt
-            </i>
-          </span>
-
-          <span v-if="collumName.sortable === true">
-            <i
-              v-if="
-                filterValuesDate.some(
-                  (filter) =>
-                    filter.filterName === collumName.value &&
-                    filter.ascending === false
-                ) ||
-                !filterValuesDate.some(
-                  (filter) => filter.filterName === collumName.value
-                )
-              "
-              @click="addFilterDate(collumName.value, false)"
-              class="material-icons tableViewSpanIconShow"
-            >
-              expand_less
-            </i>
-
-            <div
-              v-if="
-                filterValuesDate.some(
-                  (filter) =>
-                    filter.filterName === collumName.value &&
-                    filter.ascending === true
-                ) ||
-                !filterValuesDate.some(
-                  (filter) => filter.filterName === collumName.value
-                )
-              "
-            ></div>
-
-            <i
-              v-if="
-                filterValuesDate.some(
-                  (filter) =>
-                    filter.filterName === collumName.value &&
-                    filter.ascending === true
-                ) ||
-                !filterValuesDate.some(
-                  (filter) => filter.filterName === collumName.value
-                )
-              "
-              @click="addFilterDate(collumName.value, true)"
-              class="material-icons tableViewSpanIconShow"
-            >
-              expand_more
-            </i>
-
-            <div
-              v-if="
-                filterValuesDate.some(
-                  (filter) =>
-                    filter.filterName === collumName.value &&
-                    filter.ascending === false
-                ) ||
-                !filterValuesDate.some(
-                  (filter) => filter.filterName === collumName.value
-                )
-              "
-            ></div>
-          </span>
+    <div
+      class="tableview-bar-dashboard-main-row"
+      :style="{ width: rowWidth + 'px' }"
+    >
+      <div v-for="(collumName, index) in rows" :key="index">
+        <div v-if="index === 0">
+          <input type="checkbox" @click="toggleSelectAll" />
         </div>
-      </div>
+        <p @click="removeFilterDate(collumName.value)">
+          {{ collumName.displayText }}
+        </p>
 
-      <div
-        class="tableview-bar-dashboard-normal-row"
-        v-for="(collumValues, MainIndex) in renderValues"
-        :key="MainIndex"
-        @click="handleRowClick(MainIndex)"
-      >
-        <div
-          v-for="(collumValue, index) in Object.values(collumValues)"
-          :key="index"
-        >
-          <div v-if="index === 0">
-            <input type="checkbox" :ref="generateRefName(MainIndex)" />
-          </div>
-          <p>{{ formatDateString(collumValue) }}</p>
-        </div>
+        <span>
+          <i
+            v-if="
+              filterValues.some(
+                (filter) => filter.filterName === collumName.value
+              )
+            "
+            @click="removeFilterFunc(collumName.value)"
+            class="material-icons"
+          >
+            filter_alt
+          </i>
+        </span>
+
+        <span v-if="collumName.sortable === true">
+          <i
+            v-if="
+              filterValuesDate.some(
+                (filter) =>
+                  filter.filterName === collumName.value &&
+                  filter.ascending === false
+              ) ||
+              !filterValuesDate.some(
+                (filter) => filter.filterName === collumName.value
+              )
+            "
+            @click="addFilterDate(collumName.value, false)"
+            class="material-icons tableViewSpanIconShow"
+          >
+            expand_less
+          </i>
+
+          <div
+            v-if="
+              filterValuesDate.some(
+                (filter) =>
+                  filter.filterName === collumName.value &&
+                  filter.ascending === true
+              ) ||
+              !filterValuesDate.some(
+                (filter) => filter.filterName === collumName.value
+              )
+            "
+          ></div>
+
+          <i
+            v-if="
+              filterValuesDate.some(
+                (filter) =>
+                  filter.filterName === collumName.value &&
+                  filter.ascending === true
+              ) ||
+              !filterValuesDate.some(
+                (filter) => filter.filterName === collumName.value
+              )
+            "
+            @click="addFilterDate(collumName.value, true)"
+            class="material-icons tableViewSpanIconShow"
+          >
+            expand_more
+          </i>
+
+          <div
+            v-if="
+              filterValuesDate.some(
+                (filter) =>
+                  filter.filterName === collumName.value &&
+                  filter.ascending === false
+              ) ||
+              !filterValuesDate.some(
+                (filter) => filter.filterName === collumName.value
+              )
+            "
+          ></div>
+        </span>
       </div>
     </div>
 
-    <div v-else class="loading">
-      <p>Loading</p>
+    <div
+      class="tableview-bar-dashboard-normal-row"
+      v-for="(collumValues, MainIndex) in renderValues"
+      :key="MainIndex"
+      @click="handleRowClick(MainIndex)"
+      :style="{ width: rowWidth + 'px' }"
+    >
+      <div
+        v-for="(collumValue, index) in Object.values(collumValues)"
+        :key="index"
+      >
+        <div v-if="index === 0">
+          <input
+            type="checkbox"
+            @click="toggleSelect(MainIndex)"
+            :ref="generateRefName(MainIndex)"
+          />
+        </div>
+        <p>{{ formatDateString(collumValue) }}</p>
+      </div>
     </div>
   </div>
 </template>
@@ -117,6 +119,7 @@ export default {
   data() {
     return {
       checkAll: false,
+      valuesToChange: [],
     };
   },
 
@@ -128,6 +131,8 @@ export default {
     filterValuesDate: [],
     addFilterDate: Function,
     removeFilterDate: Function,
+    setValuesToChange: Function,
+    idOfValueToChangeBy: String,
   },
 
   computed: {
@@ -150,16 +155,59 @@ export default {
 
       return formattedValues;
     },
+
+    rowWidth() {
+      if (this.rows.length > 7) {
+        const widthToAdd = 1628 + 220 * (this.rows.length - 7);
+        return widthToAdd;
+      } else {
+        return 1628;
+      }
+    },
   },
 
   methods: {
     toggleSelectAll() {
+      this.valuesToChange = [];
       this.checkAll = !this.checkAll;
+
       this.values.map((value, index) => {
         const refName = this.generateRefName(index);
 
         this.$refs[refName][0].checked = this.checkAll;
+
+        if (this.checkAll) {
+          this.valuesToChange.push(value[this.idOfValueToChangeBy]);
+        } else {
+          this.valuesToChange = [];
+        }
       });
+
+      this.setValuesToChange(this.valuesToChange);
+    },
+
+    toggleSelect(index) {
+      if (event.target.checked) {
+        this.valuesToChange.push(this.values[index][this.idOfValueToChangeBy]);
+      } else {
+        this.valuesToChange.splice(
+          this.values[index][this.idOfValueToChangeBy],
+          1
+        );
+      }
+
+      this.setValuesToChange(this.valuesToChange);
+    },
+    uncheckAll() {
+      this.checkAll = false;
+      this.valuesToChange = [];
+
+      this.values.forEach((value, index) => {
+        const refName = this.generateRefName(index);
+        this.$refs[refName][0].checked = false;
+      });
+
+      this.setValuesToChange(this.valuesToChange);
     },
 
     handleRowClick(collumnIndex) {
@@ -196,6 +244,12 @@ export default {
         // Return the original string if it's not a valid date or number
         return inputString;
       }
+    },
+  },
+
+  watch: {
+    values() {
+      this.uncheckAll();
     },
   },
 };
@@ -242,7 +296,7 @@ export default {
 }
 
 .tableview-bar-dashboard-main-row {
-  width: 1645px; /* taking width larger then the parent's width */
+  width: 100%; /* taking width larger then the parent's width */
   height: 45px;
   background-color: #2c3968;
   display: flex;
