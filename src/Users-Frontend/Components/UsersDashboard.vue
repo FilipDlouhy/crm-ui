@@ -90,7 +90,14 @@
       :idOfValueToChangeBy="'user_id'"
       :setValuesToChange="setValuesToChange"
     />
-    <table-view-footer />
+    <table-view-footer
+      :lastPage="lastPage"
+      :page="page"
+      :total="total"
+      :totalMessage="'Total number of users'"
+      :decrementPage="removePage"
+      :incrementPage="addPage"
+    />
     <add-user-form v-if="showUserAddForm" />
   </div>
 </template>
@@ -165,11 +172,13 @@ export default {
     ...mapGetters({
       isUserLogged: "isUserLogged",
       showUserAddForm: "showUserAddForm",
-      selectedFilters: "selectedFilters",
       selectedFiltersUser: "selectedFiltersUser",
       selectedFiltersDatesUser: "selectedFiltersDatesUser",
       users: "users",
       usersToChange: "usersToChange",
+      page: "page",
+      total: "total",
+      lastPage: "lastPage",
     }),
 
     filterableUserTableRows() {
@@ -246,6 +255,30 @@ export default {
 
     setValuesToChange(valuesToChange) {
       this.$store.dispatch("setUsersToChange", valuesToChange);
+    },
+
+    addPage() {
+      this.$store.dispatch("setPage", this.page + 1);
+      if (
+        this.selectedFiltersUser.length > 0 ||
+        this.selectedFiltersDatesUser.length > 0
+      ) {
+        this.$store.dispatch("getUsersWithFilters");
+      } else {
+        this.$store.dispatch("getUsers");
+      }
+    },
+
+    removePage() {
+      this.$store.dispatch("setPage", this.page - 1);
+      if (
+        this.selectedFiltersUser.length > 0 ||
+        this.selectedFiltersDatesUser.length > 0
+      ) {
+        this.$store.dispatch("getUsersWithFilters");
+      } else {
+        this.$store.dispatch("getUsers");
+      }
     },
   },
 

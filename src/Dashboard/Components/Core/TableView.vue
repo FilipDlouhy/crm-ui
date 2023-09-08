@@ -6,7 +6,7 @@
     >
       <div v-for="(collumName, index) in rows" :key="index">
         <div v-if="index === 0">
-          <input type="checkbox" @click="toggleSelectAll" />
+          <input type="checkbox" @click="toggleSelectAll" :ref="'main'" />
         </div>
         <p @click="removeFilterDate(collumName.value)">
           {{ collumName.displayText }}
@@ -201,6 +201,8 @@ export default {
     uncheckAll() {
       this.checkAll = false;
       this.valuesToChange = [];
+
+      this.$refs["main"][0].checked = false;
 
       this.values.forEach((value, index) => {
         const refName = this.generateRefName(index);

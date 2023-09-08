@@ -8,6 +8,9 @@ const userServiceState = {
     users: [],
     usersToChange: [],
     stateToChange: null,
+    page: 1,
+    lastPage: 0,
+    total: 0,
   },
   mutations: {
     toggleUserAddForm(state, showForm) {
@@ -97,15 +100,12 @@ const userServiceState = {
       );
     },
     addUser(state, user) {
-      if (state.users.length > 40) {
+      if (state.users.length > 25) {
         state.user.pop();
         state.users.push(user);
       } else {
         state.users.push(user);
       }
-
-      console.log(user);
-      console.log(state.users);
     },
 
     setUsers(state, users) {
@@ -118,6 +118,19 @@ const userServiceState = {
 
     setStateToChange(state, newState) {
       state.stateToChange = newState;
+    },
+
+    setPage(state, page) {
+      if (page > state.lastPage || page < 1) {
+        return;
+      }
+      state.page = page;
+    },
+    setTotal(state, total) {
+      state.total = total;
+    },
+    setLastPage(state, lastPage) {
+      state.lastPage = lastPage;
     },
   },
   actions: {
@@ -144,16 +157,21 @@ const userServiceState = {
       commit("addUser", user);
     },
 
-    async getUsers({ commit }) {
+    async getUsers({ commit, state }) {
       try {
         const response = await axios.get(
           "http://localhost:5000/user/get-users",
           {
+            params: {
+              page: state.page,
+            },
             withCredentials: true,
           }
         );
 
-        commit("setUsers", response.data);
+        commit("setUsers", response.data.data);
+        commit("setTotal", response.data.count);
+        commit("setLastPage", Math.ceil(response.data.count / 25));
       } catch (error) {
         console.error("Error fetching users:", error);
       }
@@ -166,13 +184,16 @@ const userServiceState = {
           {
             filters: state.selectedFiltersUser,
             sortables: state.selectedFiltersDatesUser,
+            page: state.page,
           },
           {
             withCredentials: true,
           }
         );
 
-        commit("setUsers", response.data);
+        commit("setUsers", response.data.data);
+        commit("setTotal", response.data.count);
+        commit("setLastPage", Math.ceil(response.data.count / 25));
       } catch (error) {
         console.error("Error fetching users:", error);
       }
@@ -183,7 +204,6 @@ const userServiceState = {
     },
 
     async deleteUsers({ commit, state }) {
-      console.log(state.usersToChange.length);
       let response;
       if (state.usersToChange.length === 1) {
         response = await axios.get("http://localhost:5000/user/delete-user", {
@@ -265,6 +285,17 @@ const userServiceState = {
     setStateToChange({ commit }, newState) {
       commit("setStateToChange", newState);
     },
+
+    setPage({ commit }, page) {
+      commit("setPage", page);
+    },
+    setTotal({ commit }, total) {
+      commit("setTotal", total);
+    },
+
+    setLastPage({ commit }, lastPage) {
+      commit("setLastPage", lastPage);
+    },
   },
 
   getters: {
@@ -274,6 +305,9 @@ const userServiceState = {
     users: (state) => state.users,
     usersToChange: (state) => state.usersToChange,
     stateToChange: (state) => state.stateToChange,
+    page: (state) => state.page,
+    total: (state) => state.total,
+    lastPage: (state) => state.lastPage,
   },
 };
 
