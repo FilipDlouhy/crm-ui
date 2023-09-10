@@ -8,14 +8,14 @@
         <div v-if="index === 0">
           <input type="checkbox" @click="toggleSelectAll" :ref="'main'" />
         </div>
-        <p @click="removeFilterDate(collumName.value)">
+        <p @click="removeFilterSort(collumName.value)">
           {{ collumName.displayText }}
         </p>
 
         <span>
           <i
             v-if="
-              filterValues.some(
+              filterValues?.some(
                 (filter) => filter.filterName === collumName.value
               )
             "
@@ -29,16 +29,16 @@
         <span v-if="collumName.sortable === true">
           <i
             v-if="
-              filterValuesDate.some(
+              filterValuesSort?.some(
                 (filter) =>
                   filter.filterName === collumName.value &&
                   filter.ascending === false
               ) ||
-              !filterValuesDate.some(
+              !filterValuesSort?.some(
                 (filter) => filter.filterName === collumName.value
               )
             "
-            @click="addFilterDate(collumName.value, false)"
+            @click="addFilterSort(collumName.value, false)"
             class="material-icons tableViewSpanIconShow"
           >
             expand_less
@@ -46,12 +46,12 @@
 
           <div
             v-if="
-              filterValuesDate.some(
+              filterValuesSort?.some(
                 (filter) =>
                   filter.filterName === collumName.value &&
                   filter.ascending === true
               ) ||
-              !filterValuesDate.some(
+              !filterValuesSort?.some(
                 (filter) => filter.filterName === collumName.value
               )
             "
@@ -59,16 +59,16 @@
 
           <i
             v-if="
-              filterValuesDate.some(
+              filterValuesSort?.some(
                 (filter) =>
                   filter.filterName === collumName.value &&
                   filter.ascending === true
               ) ||
-              !filterValuesDate.some(
+              !filterValuesSort?.some(
                 (filter) => filter.filterName === collumName.value
               )
             "
-            @click="addFilterDate(collumName.value, true)"
+            @click="addFilterSort(collumName.value, true)"
             class="material-icons tableViewSpanIconShow"
           >
             expand_more
@@ -76,12 +76,12 @@
 
           <div
             v-if="
-              filterValuesDate.some(
+              filterValuesSort?.some(
                 (filter) =>
                   filter.filterName === collumName.value &&
                   filter.ascending === false
               ) ||
-              !filterValuesDate.some(
+              !filterValuesSort?.some(
                 (filter) => filter.filterName === collumName.value
               )
             "
@@ -100,6 +100,7 @@
       <div
         v-for="(collumValue, index) in Object.values(collumValues)"
         :key="index"
+        :style="{ width: getLarge(index) + 'px' }"
       >
         <div v-if="index === 0">
           <input
@@ -124,29 +125,63 @@ export default {
   },
 
   props: {
-    rows: [],
-    values: [],
-    removeFilterFunc: Function,
-    filterValues: [],
-    filterValuesDate: [],
-    addFilterDate: Function,
-    removeFilterDate: Function,
-    setValuesToChange: Function,
-    idOfValueToChangeBy: String,
+    rows: {
+      type: Array,
+      default: () => [],
+    },
+    values: {
+      type: Array,
+      default: () => [],
+    },
+    removeFilterFunc: {
+      type: Function,
+      default: () => null,
+    },
+    filterValues: {
+      type: Array,
+      default: () => [],
+    },
+    filterValuesSort: {
+      type: Array,
+      default: () => [],
+    },
+    addFilterSort: {
+      type: Function,
+      default: () => null,
+    },
+    removeFilterSort: {
+      type: Function,
+      default: () => null,
+    },
+    setValuesToChange: {
+      type: Function,
+      default: () => null,
+    },
+    idOfValueToChangeBy: {
+      type: String,
+      default: "",
+    },
   },
-
   computed: {
     renderValues() {
-      const rowNames = this.rows.map((row) => row.value);
       const formattedValues = [];
 
       this.values.map((obj) => {
         const renderObjs = {};
-        rowNames.map((rowName) => {
-          if (Array.isArray(obj[rowName])) {
-            renderObjs[rowName] = obj[rowName].join(", ");
+        this.rows.map((row) => {
+          if (Array.isArray(obj[row.value])) {
+            if (obj[row.value][0] && typeof obj[row.value][0] === "object") {
+              const displayNames = obj[row.value].map(
+                (item) => item.displayName
+              );
+
+              renderObjs[row.value] = displayNames.join(", ");
+            } else {
+              // It's an array of non-objects, join them as before
+              renderObjs[row.value] = obj[row.value].join(", ");
+            }
           } else {
-            renderObjs[rowName] = obj[rowName];
+            renderObjs[row.value] = obj[row.value];
           }
         });
 
@@ -206,7 +241,9 @@ export default {
 
       this.values.forEach((value, index) => {
         const refName = this.generateRefName(index);
-        this.$refs[refName][0].checked = false;
+        if (this.$refs[refName] && this.$refs[refName][0] != null) {
+          this.$refs[refName][0].checked = false;
+        }
       });
 
       this.setValuesToChange(this.valuesToChange);
@@ -245,6 +282,14 @@ export default {
       } else {
         // Return the original string if it's not a valid date or number
         return inputString;
+      }
+    },
+
+    getLarge(index) {
+      if (this.rows[index].large) {
+        return 440;
+      } else {
+        return 220;
       }
     },
   },
@@ -381,7 +426,6 @@ export default {
   display: flex;
   border-bottom: 1px solid #2c3968;
   div {
-    width: 220px;
     height: 100%;
     display: flex;
     align-items: center;

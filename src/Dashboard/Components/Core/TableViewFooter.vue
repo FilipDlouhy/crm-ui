@@ -18,13 +18,30 @@
 <script>
 export default {
   props: {
-    page: Number,
-    lastPage: Number,
-    total: Number,
-    incrementPage: Function,
-    decrementPage: Function,
-
-    totalMessage: String,
+    page: {
+      type: Number,
+      default: 1,
+    },
+    lastPage: {
+      type: Number,
+      default: 1,
+    },
+    total: {
+      type: Number,
+      default: 0,
+    },
+    incrementPage: {
+      type: Function,
+      default: () => null,
+    },
+    decrementPage: {
+      type: Function,
+      default: () => null,
+    },
+    totalMessage: {
+      type: String,
+      default: "",
+    },
   },
 };
 </script>

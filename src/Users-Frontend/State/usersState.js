@@ -1,16 +1,16 @@
 import axios from "axios";
 
-const userServiceState = {
+const usersState = {
   state: {
     showUserAddForm: false,
     selectedFiltersUser: [],
-    selectedFiltersDatesUser: [],
+    selectedFiltersSortUser: [],
     users: [],
     usersToChange: [],
     stateToChange: null,
-    page: 1,
-    lastPage: 0,
-    total: 0,
+    userPage: 1,
+    userLastPage: 0,
+    userTotal: 0,
   },
   mutations: {
     toggleUserAddForm(state, showForm) {
@@ -54,12 +54,11 @@ const userServiceState = {
       );
     },
 
-    addSelectedFilterDateUser(state, { filterName, ascending }) {
-      console.log({ filterName, ascending });
+    addSelectedFilterSortUser(state, { filterName, ascending }) {
       let valueChangeObject; // Initialize a variable to hold the object to be updated
       let exists; // Initialize a variable to check if the object already exists
-      // Loop through the selectedFiltersDatesUser array to find the object
-      for (const filter of state.selectedFiltersDatesUser) {
+      // Loop through the selectedFiltersSortUser array to find the object
+      for (const filter of state.selectedFiltersSortUser) {
         if (filter.filterName === filterName) {
           exists = true;
           valueChangeObject = filter;
@@ -67,9 +66,9 @@ const userServiceState = {
         }
       }
 
-      // If the object doesn't exist, add it to the selectedFiltersDatesUser array
+      // If the object doesn't exist, add it to the selectedFiltersSortUser array
       if (!exists) {
-        state.selectedFiltersDatesUser.push({
+        state.selectedFiltersSortUser.push({
           filterName,
           ascending,
         });
@@ -78,30 +77,30 @@ const userServiceState = {
       // If the object exists and the value needs to be changed
       if (exists && valueChangeObject.ascending !== ascending) {
         // Find the index of the object to delete based on filterName
-        const indexToDelete = state.selectedFiltersDatesUser.findIndex(
+        const indexToDelete = state.selectedFiltersSortUser.findIndex(
           (filter) => filter.filterName === filterName
         );
 
-        // Remove the existing object from the selectedFiltersDatesUser array
-        state.selectedFiltersDatesUser.splice(indexToDelete, 1);
+        // Remove the existing object from the selectedFiltersSortUser array
+        state.selectedFiltersSortUser.splice(indexToDelete, 1);
 
         // Push a new object with the updated filterValue
-        state.selectedFiltersDatesUser.push({
+        state.selectedFiltersSortUser.push({
           filterName,
           ascending,
         });
       }
     },
-    removeSelectedFilterDateUser(state, filterName) {
+    removeSelectedFilterSortUser(state, filterName) {
       // Use filter method to create a new array without the filter to be removed
 
-      state.selectedFiltersDatesUser = state.selectedFiltersDatesUser.filter(
+      state.selectedFiltersSortUser = state.selectedFiltersSortUser.filter(
         (filter) => filter.filterName !== filterName
       );
     },
     addUser(state, user) {
       if (state.users.length > 25) {
-        state.user.pop();
+        state.users.pop();
         state.users.push(user);
       } else {
         state.users.push(user);
@@ -120,17 +119,17 @@ const userServiceState = {
       state.stateToChange = newState;
     },
 
-    setPage(state, page) {
-      if (page > state.lastPage || page < 1) {
+    setUserPage(state, userPage) {
+      if (userPage > state.userLastPage || userPage < 1) {
         return;
       }
-      state.page = page;
+      state.userPage = userPage;
     },
-    setTotal(state, total) {
-      state.total = total;
+    setUserTotal(state, userTotal) {
+      state.userTotal = userTotal;
     },
-    setLastPage(state, lastPage) {
-      state.lastPage = lastPage;
+    setUserLastPage(state, userLastPage) {
+      state.userLastPage = userLastPage;
     },
   },
   actions: {
@@ -144,14 +143,14 @@ const userServiceState = {
       commit("removeSelectedFilterUser", filterName);
     },
 
-    addSelectedFilterDateUser({ commit }, { filterName, ascending }) {
-      commit("addSelectedFilterDateUser", {
+    addSelectedFilterSortUser({ commit }, { filterName, ascending }) {
+      commit("addSelectedFilterSortUser", {
         filterName,
         ascending,
       });
     },
-    removeSelectedFilterDateUser({ commit }, filterName) {
-      commit("removeSelectedFilterDateUser", filterName);
+    removeSelectedFilterSortUser({ commit }, filterName) {
+      commit("removeSelectedFilterSortUser", filterName);
     },
     addUser({ commit }, user) {
       commit("addUser", user);
@@ -163,15 +162,15 @@ const userServiceState = {
           "http://localhost:5000/user/get-users",
           {
             params: {
-              page: state.page,
+              page: state.userPage,
             },
             withCredentials: true,
           }
         );
 
         commit("setUsers", response.data.data);
-        commit("setTotal", response.data.count);
-        commit("setLastPage", Math.ceil(response.data.count / 25));
+        commit("setUserTotal", response.data.count);
+        commit("setUserLastPage", Math.ceil(response.data.count / 25));
       } catch (error) {
         console.error("Error fetching users:", error);
       }
@@ -183,8 +182,8 @@ const userServiceState = {
           "http://localhost:5000/user/get-users-with-filter",
           {
             filters: state.selectedFiltersUser,
-            sortables: state.selectedFiltersDatesUser,
-            page: state.page,
+            sortables: state.selectedFiltersSortUser,
+            page: state.userPage,
           },
           {
             withCredentials: true,
@@ -192,8 +191,8 @@ const userServiceState = {
         );
 
         commit("setUsers", response.data.data);
-        commit("setTotal", response.data.count);
-        commit("setLastPage", Math.ceil(response.data.count / 25));
+        commit("setUserTotal", response.data.count);
+        commit("setUserLastPage", Math.ceil(response.data.count / 25));
       } catch (error) {
         console.error("Error fetching users:", error);
       }
@@ -286,29 +285,29 @@ const userServiceState = {
       commit("setStateToChange", newState);
     },
 
-    setPage({ commit }, page) {
-      commit("setPage", page);
+    setUserPage({ commit }, userPage) {
+      commit("setUserPage", userPage);
     },
-    setTotal({ commit }, total) {
-      commit("setTotal", total);
+    setUserTotal({ commit }, userTotal) {
+      commit("setUserTotal", userTotal);
     },
 
-    setLastPage({ commit }, lastPage) {
-      commit("setLastPage", lastPage);
+    setUserLastPage({ commit }, userLastPage) {
+      commit("setUserLastPage", userLastPage);
     },
   },
 
   getters: {
     showUserAddForm: (state) => state.showUserAddForm,
     selectedFiltersUser: (state) => state.selectedFiltersUser,
-    selectedFiltersDatesUser: (state) => state.selectedFiltersDatesUser,
+    selectedFiltersSortUser: (state) => state.selectedFiltersSortUser,
     users: (state) => state.users,
     usersToChange: (state) => state.usersToChange,
     stateToChange: (state) => state.stateToChange,
-    page: (state) => state.page,
-    total: (state) => state.total,
-    lastPage: (state) => state.lastPage,
+    userPage: (state) => state.userPage,
+    userTotal: (state) => state.userTotal,
+    userLastPage: (state) => state.userLastPage,
   },
 };
 
-export default userServiceState;
+export default usersState;

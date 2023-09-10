@@ -2,7 +2,7 @@
   <div>
     <div
       :class="activeMenu === 'users' ? 'selected-service' : 'service'"
-      @click="setUsersAsActiveMenu, setAsActiveMenuText('/User-Service')"
+      @click="setUsersAsActiveMenu"
     >
       <div class="service-name">
         <i class="material-icons"> person_outline </i>
@@ -20,7 +20,7 @@
             setAsActiveMenuText('/User-Service/Users')
         "
       >
-        <div>
+        <div @click="navigateToUsers">
           <i class="material-icons"> people_outline </i>
           <p>Users</p>
         </div>
@@ -35,7 +35,7 @@
             setAsActiveMenuText('/User-Service/Roles')
         "
       >
-        <div>
+        <div @click="navigateToRoles">
           <i class="material-icons"> list_alt </i>
           <p>Roles</p>
         </div>
@@ -71,6 +71,18 @@ export default {
     setAsActiveMenuText(subMenuText) {
       this.$store.commit("setActiveMenuText", subMenuText);
       localStorage.setItem("activeMenuText", subMenuText);
+    },
+
+    navigateToUsers() {
+      if (this.$route.path !== "/Users") {
+        this.$router.push("/Users");
+      }
+    },
+
+    navigateToRoles() {
+      if (this.$route.path !== "/Roles") {
+        this.$router.push("/Roles");
+      }
     },
   },
 };

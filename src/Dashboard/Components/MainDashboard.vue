@@ -10,19 +10,17 @@
         <p>TechTrack{{ activeMenuText }}</p>
       </div>
 
-      <users-dashboard />
+      <router-view />
     </div>
   </div>
 </template>
 
 <script>
-import UsersDashboard from "../../Users-Frontend/Components/UsersDashboard.vue";
 import UsersSideMenu from "../../Users-Frontend/Components/UsersSideMenu.vue";
 import { mapGetters } from "vuex";
 
 export default {
   components: {
-    UsersDashboard,
     UsersSideMenu,
   },
 

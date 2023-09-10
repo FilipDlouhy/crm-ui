@@ -33,6 +33,12 @@ export default {
       isUserLogged: "isUserLogged",
     }),
   },
+
+  mounted() {
+    if (this.$route.path !== "/Users") {
+      this.$router.push("/Users");
+    }
+  },
 };
 </script>
 

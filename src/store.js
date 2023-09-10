@@ -3,7 +3,8 @@ import Vuex from "vuex";
 import modalState from "./State/modalState";
 import userState from "./State/userState";
 import activeMenuState from "./State/ActiveMenuState";
-import userServiceState from "./Users-Frontend/State/usersFiltersAndDataState";
+import usersState from "./Users-Frontend/State/usersState";
+import rolesState from "./Users-Frontend/State/roleState";
 Vue.use(Vuex);
 
 const store = new Vuex.Store({
@@ -11,7 +12,8 @@ const store = new Vuex.Store({
     modal: modalState,
     userState: userState,
     activeMenuState: activeMenuState,
-    userServiceState: userServiceState,
+    usersState: usersState,
+    rolesState: rolesState,
   },
 });
 

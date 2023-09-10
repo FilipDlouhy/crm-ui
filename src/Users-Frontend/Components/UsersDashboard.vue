@@ -84,16 +84,16 @@
       :values="users"
       :removeFilterFunc="removeFilter"
       :filterValues="selectedFiltersUser"
-      :filterValuesDate="selectedFiltersDatesUser"
-      :addFilterDate="addFilterDate"
-      :removeFilterDate="removeFilterDate"
+      :filterValuesSort="selectedFiltersSortUser"
+      :addFilterSort="addFilteSort"
+      :removeFilterSort="removeFilterSort"
       :idOfValueToChangeBy="'user_id'"
       :setValuesToChange="setValuesToChange"
     />
     <table-view-footer
-      :lastPage="lastPage"
-      :page="page"
-      :total="total"
+      :lastPage="userLastPage"
+      :page="userPage"
+      :total="userTotal"
       :totalMessage="'Total number of users'"
       :decrementPage="removePage"
       :incrementPage="addPage"
@@ -117,27 +117,23 @@ export default {
           displayText: "First name",
           value: "first_name",
           sortable: true,
-          sortBy: "alphabethical",
           filterable: true,
         },
         {
           displayText: "Last name",
           value: "last_name",
           sortable: true,
-          sortBy: "alphabethical",
           filterable: true,
         },
         {
           displayText: "User state",
           value: "state",
           sortable: true,
-          sortBy: "number",
         },
         {
           displayText: "Email",
           value: "email",
           sortable: true,
-          sortBy: "alphabethical",
 
           filterable: true,
         },
@@ -148,14 +144,12 @@ export default {
           filterable: true,
 
           sortable: true,
-          sortBy: "number",
         },
         {
           displayText: "Created",
           value: "created_at",
           filterable: false,
           sortable: true,
-          sortBy: "date",
         },
       ],
 
@@ -170,15 +164,14 @@ export default {
 
   computed: {
     ...mapGetters({
-      isUserLogged: "isUserLogged",
       showUserAddForm: "showUserAddForm",
       selectedFiltersUser: "selectedFiltersUser",
-      selectedFiltersDatesUser: "selectedFiltersDatesUser",
+      selectedFiltersSortUser: "selectedFiltersSortUser",
       users: "users",
       usersToChange: "usersToChange",
-      page: "page",
-      total: "total",
-      lastPage: "lastPage",
+      userPage: "userPage",
+      userTotal: "userTotal",
+      userLastPage: "userLastPage",
     }),
 
     filterableUserTableRows() {
@@ -234,8 +227,8 @@ export default {
       this.$store.dispatch("setDoYouWantToModalFunction", "updateUsersState");
     },
 
-    async addFilterDate(collumName, ascending) {
-      await this.$store.commit("addSelectedFilterDateUser", {
+    async addFilteSort(collumName, ascending) {
+      await this.$store.commit("addSelectedFilterSortUser", {
         filterName: collumName,
         ascending,
       });
@@ -243,8 +236,8 @@ export default {
       await this.$store.dispatch("getUsersWithFilters");
     },
 
-    async removeFilterDate(collumName) {
-      await this.$store.commit("removeSelectedFilterDateUser", collumName);
+    async removeFilterSort(collumName) {
+      await this.$store.commit("removeSelectedFilterSortUser", collumName);
 
       await this.$store.dispatch("getUsersWithFilters");
     },
@@ -258,10 +251,10 @@ export default {
     },
 
     addPage() {
-      this.$store.dispatch("setPage", this.page + 1);
+      this.$store.dispatch("setUserPage", this.userPage + 1);
       if (
         this.selectedFiltersUser.length > 0 ||
-        this.selectedFiltersDatesUser.length > 0
+        this.selectedFiltersSortUser.length > 0
       ) {
         this.$store.dispatch("getUsersWithFilters");
       } else {
@@ -270,10 +263,10 @@ export default {
     },
 
     removePage() {
-      this.$store.dispatch("setPage", this.page - 1);
+      this.$store.dispatch("setUserPage", this.userPage - 1);
       if (
         this.selectedFiltersUser.length > 0 ||
-        this.selectedFiltersDatesUser.length > 0
+        this.selectedFiltersSortUser.length > 0
       ) {
         this.$store.dispatch("getUsersWithFilters");
       } else {
