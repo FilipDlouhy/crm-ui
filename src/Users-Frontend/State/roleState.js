@@ -1,5 +1,11 @@
 import axios from "axios";
 
+import {
+  addSelectedFilterSort,
+  removeSelectedFilter,
+  addSelectedFilter,
+} from "@/Dashboard/Components/Core/FilterHelper/FilterHelper";
+
 const rolesState = {
   state: {
     showRoleForm: false,
@@ -33,61 +39,31 @@ const rolesState = {
       state.rolesToChange = rolesToChange;
     },
 
-    addSelectedFilterRole(state, filterValue) {
-      state.selectedFiltersRole.pop();
-      state.selectedFiltersRole.push({ filterName: "role_name", filterValue });
+    addSelectedFilterRole(state, { filterName, filterValue }) {
+      state.selectedFiltersRole = addSelectedFilter(state.selectedFiltersRole, {
+        filterName,
+        filterValue,
+      });
     },
 
-    removeSelectedFilterRole(state) {
-      state.selectedFiltersRole = [];
+    removeSelectedFilterRole(state, filterName) {
+      state.selectedFiltersRole = removeSelectedFilter(
+        state.selectedFiltersRole,
+        filterName
+      );
     },
 
     addSelectedFilterSortRole(state, { filterName, ascending }) {
-      console.log({ filterName, ascending });
-      let valueChangeObject; // Initialize a variable to hold the object to be updated
-      let exists; // Initialize a variable to check if the object already exists
-      // Loop through the selectedFiltersSortRole array to find the object
-      for (const filter of state.selectedFiltersSortRole) {
-        if (filter.filterName === filterName) {
-          exists = true;
-          valueChangeObject = filter;
-          break;
-        }
-      }
-
-      // If the object doesn't exist, add it to the selectedFiltersSortRole array
-      if (!exists) {
-        state.selectedFiltersSortRole.push({
-          filterName,
-          ascending,
-        });
-      }
-
-      // If the object exists and the value needs to be changed
-      if (exists && valueChangeObject.ascending !== ascending) {
-        // Find the index of the object to delete based on filterName
-        const indexToDelete = state.selectedFiltersSortRole.findIndex(
-          (filter) => filter.filterName === filterName
-        );
-
-        // Remove the existing object from the selectedFiltersSortRole array
-        state.selectedFiltersSortRole.splice(indexToDelete, 1);
-
-        // Push a new object with the updated filterValue
-        state.selectedFiltersSortRole.push({
-          filterName,
-          ascending,
-        });
-      }
-
-      console.log(state.selectedFiltersSortRole);
+      state.selectedFiltersSortRole = addSelectedFilterSort(
+        state.selectedFiltersSortRole,
+        { filterName, ascending }
+      );
     },
 
     removeSelectedFilterSorRole(state, filterName) {
-      // Use filter method to create a new array without the filter to be removed
-
-      state.selectedFiltersSortRole = state.selectedFiltersSortRole.filter(
-        (filter) => filter.filterName !== filterName
+      state.selectedFiltersSortRole = removeSelectedFilter(
+        state.selectedFiltersSortRole,
+        filterName
       );
     },
 
@@ -126,7 +102,6 @@ const rolesState = {
           }
         );
 
-        console.log(response.data);
         commit("setRoles", response.data.data);
         commit("setRoleTotal", response.data.count);
         commit("setRoleLastPage", Math.ceil(response.data.count / 25));
@@ -184,8 +159,8 @@ const rolesState = {
       commit("addSelectedFilterRole", filterValue);
     },
 
-    removeSelectedFilterRole({ commit }) {
-      commit("removeSelectedFilterRole");
+    removeSelectedFilterRole({ commit }, filterName) {
+      commit("removeSelectedFilterRole", filterName);
     },
 
     async getRolesWithFilters({ commit, state }) {

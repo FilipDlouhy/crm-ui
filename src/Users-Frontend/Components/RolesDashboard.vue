@@ -106,14 +106,17 @@ export default {
         return;
       }
 
-      this.$store.dispatch("addSelectedFilterRole", this.filterValue);
+      this.$store.dispatch("addSelectedFilterRole", {
+        filterName: "role_name",
+        filterValue: this.filterValue,
+      });
       this.$store.dispatch("getRolesWithFilters");
     },
 
     async removeFilter() {
       this.filterValue = "";
 
-      this.$store.dispatch("removeSelectedFilterRole");
+      this.$store.dispatch("removeSelectedFilterRole", "role_name");
       await this.$store.dispatch("getRolesWithFilters");
     },
 
