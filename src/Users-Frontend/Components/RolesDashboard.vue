@@ -2,13 +2,19 @@
   <div>
     <div class="main-bar-buttons">
       <div class="main-bar-add-button-container">
-        <button @click="toggleRoleForm">
+        <button
+          v-if="userRights.includes('createDeleteRole')"
+          @click="toggleRoleForm"
+        >
           Create Role
 
           <i class="material-icons"> supervised_user_circle </i>
         </button>
 
-        <button @click="showRemoveRoleForm('Do you want to delete roles')">
+        <button
+          v-if="userRights.includes('createDeleteRole')"
+          @click="showRemoveRoleForm('Do you want to delete roles')"
+        >
           Delete Role
 
           <i class="material-icons">do_not_disturb_on </i>
@@ -90,6 +96,8 @@ export default {
       rolePage: "rolePage",
       roleLastPage: "roleLastPage",
       roleTotal: "roleTotal",
+      isUserLogged: "isUserLogged",
+      userRights: "userRights",
     }),
 
     filterableUserTableRows() {
@@ -177,7 +185,9 @@ export default {
   },
 
   async mounted() {
-    this.$store.dispatch("getRoles");
+    if (this.roles.length === 0 && this.isUserLogged) {
+      this.$store.dispatch("getRoles");
+    }
   },
 };
 </script>

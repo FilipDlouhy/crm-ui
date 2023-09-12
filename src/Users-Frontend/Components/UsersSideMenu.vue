@@ -1,6 +1,7 @@
 <template>
   <div>
     <div
+      v-if="userRights.includes('seeUserService')"
       :class="activeMenu === 'users' ? 'selected-service' : 'service'"
       @click="setUsersAsActiveMenu"
     >
@@ -20,7 +21,7 @@
             setAsActiveMenuText('/User-Service/Users')
         "
       >
-        <div @click="navigateToUsers">
+        <div v-if="userRights.includes('seeUsers')" @click="navigateToUsers">
           <i class="material-icons"> people_outline </i>
           <p>Users</p>
         </div>
@@ -35,7 +36,7 @@
             setAsActiveMenuText('/User-Service/Roles')
         "
       >
-        <div @click="navigateToRoles">
+        <div v-if="userRights.includes('seeRoles')" @click="navigateToRoles">
           <i class="material-icons"> list_alt </i>
           <p>Roles</p>
         </div>
@@ -51,6 +52,7 @@ export default {
     ...mapGetters({
       activeMenu: "activeMenu",
       activeSubMenu: "activeSubMenu",
+      userRights: "userRights",
     }),
   },
 

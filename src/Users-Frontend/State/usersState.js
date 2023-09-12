@@ -8,6 +8,8 @@ import {
 const usersState = {
   state: {
     showUserAddForm: false,
+    addRemoveRoleForm: { show: false, add: false },
+    addRemoveRoleFormAnimaton: true,
     selectedFiltersUser: [],
     selectedFiltersSortUser: [],
     users: [],
@@ -18,9 +20,19 @@ const usersState = {
     userTotal: 0,
   },
   mutations: {
+    closeAddRemoveRoleFormAnimaton(state) {
+      state.addRemoveRoleFormAnimaton = false;
+    },
     toggleUserAddForm(state, showForm) {
       state.showUserAddForm = showForm;
     },
+
+    toggleAddRemoveRoleForm(state, { showForm, addRole }) {
+      state.addRemoveRoleForm = { show: showForm, add: addRole };
+
+      state.addRemoveRoleFormAnimaton = showForm;
+    },
+
     addSelectedFilterUser(state, { filterName, filterValue }) {
       state.selectedFiltersUser = addSelectedFilter(state.selectedFiltersUser, {
         filterName,
@@ -84,6 +96,10 @@ const usersState = {
   actions: {
     toggleUserAddForm({ commit }, showForm) {
       commit("toggleUserAddForm", showForm);
+    },
+
+    toggleAddRemoveRoleForm({ commit }, { showForm, addRole }) {
+      commit("toggleAddRemoveRoleForm", { showForm, addRole });
     },
     addSelectedFilterUser({ commit }, { filterName, filterValue }) {
       commit("addSelectedFilterUser", { filterName, filterValue });
@@ -244,6 +260,24 @@ const usersState = {
     setUserLastPage({ commit }, userLastPage) {
       commit("setUserLastPage", userLastPage);
     },
+
+    async updateUsersRoles({ commit, state }, updatedUserRoles) {
+      const userIdsToUpdate = updatedUserRoles.map((user) => {
+        return user.user_id;
+      });
+
+      const newUsers = state.users.map((user) => {
+        if (userIdsToUpdate.includes(user.user_id)) {
+          const index = userIdsToUpdate.findIndex((id) => id === user.user_id);
+
+          user.roles = updatedUserRoles[index].roles;
+          return user;
+        } else {
+          return user;
+        }
+      });
+      commit("setUsers", newUsers);
+    },
   },
 
   getters: {
@@ -256,6 +290,8 @@ const usersState = {
     userPage: (state) => state.userPage,
     userTotal: (state) => state.userTotal,
     userLastPage: (state) => state.userLastPage,
+    addRemoveRoleForm: (state) => state.addRemoveRoleForm,
+    addRemoveRoleFormAnimaton: (state) => state.addRemoveRoleFormAnimaton,
   },
 };
 

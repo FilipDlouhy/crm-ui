@@ -140,9 +140,33 @@ export default {
 
         if (response.data.error) {
           this.$store.commit("showModal", response.data.error);
+          return;
         }
 
-        this.$store.dispatch("setIsUserLogged", true);
+        const rights = await axios.get(
+          "http://localhost:5000/get-user-rights",
+          {
+            withCredentials: true,
+          }
+        );
+
+        if (rights.data.error) {
+          this.$store.commit("showModal", rights.data.error);
+          return;
+        }
+
+        if (!response.data.error) {
+          const userRights = rights.data.rights.map((roleRight) => {
+            return roleRight.rights.map((right) => {
+              return right.name;
+            });
+          });
+
+          // Flatten the array and remove duplicates using a Set
+          const uniqueUserRighs = [...new Set(userRights.flat())];
+          this.$store.dispatch("setIsUserLogged", true);
+          this.$store.commit("setUserRights", uniqueUserRighs);
+        }
       } catch (error) {
         this.$store.commit(
           "showModal",

@@ -6,12 +6,19 @@ Vue.use(Vuex);
 
 const userState = {
   state: {
-    isUserLogged: true,
+    isUserLogged: false,
+    userRights: [],
   },
 
   mutations: {
     setLoginState(state, loginStatus) {
       state.isUserLogged = loginStatus;
+    },
+
+    setUserRights(state, userRights) {
+      console.log(userRights);
+
+      state.userRights = userRights;
     },
   },
 
@@ -22,7 +29,16 @@ const userState = {
       })
         .then((response) => {
           if (response.data.isLogged === true) {
+            const userRights = response.data.rights.map((roleRight) => {
+              return roleRight.rights.map((right) => {
+                return right.name;
+              });
+            });
+
+            // Flatten the array and remove duplicates using a Set
+            const uniqueUserRighs = [...new Set(userRights.flat())];
             commit("setLoginState", true);
+            commit("setUserRights", uniqueUserRighs);
           } else {
             commit("setLoginState", false);
           }
@@ -40,6 +56,7 @@ const userState = {
 
   getters: {
     isUserLogged: (state) => state.isUserLogged,
+    userRights: (state) => state.userRights,
   },
 };
 

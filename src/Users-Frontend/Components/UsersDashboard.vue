@@ -2,13 +2,19 @@
   <div>
     <div class="main-bar-buttons">
       <div class="main-bar-add-button-container">
-        <button @click="showAddUserForm">
+        <button
+          v-if="userRights.includes('createDeleteRole')"
+          @click="showAddUserForm"
+        >
           User Add
 
           <i class="material-icons"> person_add </i>
         </button>
 
-        <button @click="showRemoveUserForm('Do you want to delete user')">
+        <button
+          v-if="userRights.includes('createDeleteRole')"
+          @click="showRemoveUserForm('Do you want to delete user')"
+        >
           User Remove
 
           <i class="material-icons"> person_remove </i>
@@ -30,6 +36,7 @@
 
       <div class="main-bar-service-button-container">
         <button
+          v-if="userRights.includes('changeUserState')"
           @click="
             showUserChangeStateForm(
               'Do you want to change state to pending ',
@@ -43,6 +50,7 @@
         </button>
 
         <button
+          v-if="userRights.includes('changeUserState')"
           @click="
             showUserChangeStateForm(
               'Do you want to change state to pending ',
@@ -56,6 +64,7 @@
         </button>
 
         <button
+          v-if="userRights.includes('changeUserState')"
           @click="
             showUserChangeStateForm(
               'Do you want to change state to pending ',
@@ -68,12 +77,28 @@
           <i class="material-icons"> block </i>
         </button>
 
-        <button>
+        <button
+          v-if="userRights.includes('addRemoveRole')"
+          @click="
+            showAddRemoveRoleForm({
+              showForm: true,
+              addRole: true,
+            })
+          "
+        >
           Add Role
           <i class="material-icons"> add_circle </i>
         </button>
 
-        <button>
+        <button
+          v-if="userRights.includes('addRemoveRole')"
+          @click="
+            showAddRemoveRoleForm({
+              showForm: true,
+              addRole: false,
+            })
+          "
+        >
           Remove Role
           <i class="material-icons"> remove </i>
         </button>
@@ -99,13 +124,16 @@
       :incrementPage="addPage"
     />
     <add-user-form v-if="showUserAddForm" />
+    <add-role-form />
   </div>
 </template>
 <script>
 import TableView from "../../Dashboard/Components/Core/TableView.vue";
 import TableViewFooter from "../../Dashboard/Components/Core/TableViewFooter.vue";
 import AddUserForm from "./AddUserForm.vue";
+
 import { mapGetters } from "vuex";
+import AddRoleForm from "./AddRoleForm.vue";
 
 export default {
   data() {
@@ -137,7 +165,7 @@ export default {
 
           filterable: true,
         },
-        { displayText: "Roles", value: "role_ids", filterable: true },
+        { displayText: "Roles", value: "roles", filterable: true },
         {
           displayText: "Telephone",
           value: "tel_number",
@@ -160,6 +188,7 @@ export default {
     TableView,
     TableViewFooter,
     AddUserForm,
+    AddRoleForm,
   },
 
   computed: {
@@ -172,6 +201,8 @@ export default {
       userPage: "userPage",
       userTotal: "userTotal",
       userLastPage: "userLastPage",
+      isUserLogged: "isUserLogged",
+      userRights: "userRights",
     }),
 
     filterableUserTableRows() {
@@ -273,10 +304,19 @@ export default {
         this.$store.dispatch("getUsers");
       }
     },
+
+    showAddRemoveRoleForm({ showForm, addRole }) {
+      if (this.usersToChange.length === 0) {
+        return;
+      }
+      this.$store.dispatch("toggleAddRemoveRoleForm", { showForm, addRole });
+    },
   },
 
   async mounted() {
-    this.$store.dispatch("getUsers");
+    if (this.isUserLogged) {
+      this.$store.dispatch("getUsers");
+    }
   },
 };
 </script>
