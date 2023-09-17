@@ -1,7 +1,10 @@
 <template>
   <div class="dashboard">
     <div class="side-bar">
-      <div class="side-bar-logo"><p>TechTrack</p></div>
+      <div class="side-bar-logo">
+        <span @click="logout" class="material-icons"> logout </span>
+        <p>TechTrack</p>
+      </div>
       <users-side-menu />
     </div>
 
@@ -18,6 +21,7 @@
 <script>
 import UsersSideMenu from "../../Users-Frontend/Components/UsersSideMenu.vue";
 import { mapGetters } from "vuex";
+import axios from "axios";
 
 export default {
   components: {
@@ -29,6 +33,18 @@ export default {
       activeMenu: "activeMenu",
       activeMenuText: "activeMenuText",
     }),
+  },
+
+  methods: {
+    async logout() {
+      console.log("AAA");
+      const response = await axios.post("http://localhost:5000/logout", null, {
+        withCredentials: true,
+      });
+      if (response.data.logout) {
+        this.$store.commit("setLoginState", false);
+      }
+    },
   },
 };
 </script>
@@ -50,7 +66,8 @@ export default {
 .side-bar-logo {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-evenly;
+  padding-right: 50px;
   height: 50px;
   width: 100%;
   border-bottom: 1px solid #2c3968;
@@ -59,6 +76,15 @@ export default {
     font-size: 1.5rem;
     font-weight: bold;
     letter-spacing: 2px;
+  }
+  span {
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 700;
+    transform: rotate(-180deg);
+    &:hover {
+      color: #2c3968;
+    }
   }
 }
 

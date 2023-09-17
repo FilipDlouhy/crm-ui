@@ -16,6 +16,8 @@ const rolesState = {
     rolePage: 1,
     roleLastPage: 0,
     roleTotal: 0,
+    roleToUpdate: null,
+    roleToUpdateIndex: null,
   },
   mutations: {
     setShowRoleForm(state, value) {
@@ -79,6 +81,14 @@ const rolesState = {
     },
     setRoleLastPage(state, roleLastPage) {
       state.roleLastPage = roleLastPage;
+    },
+
+    setRoleToUpdate(state, roleToUpdate) {
+      state.roleToUpdate = roleToUpdate;
+    },
+
+    setRoleToUpdateIndex(state, roleToUpdateIndex) {
+      state.roleToUpdateIndex = roleToUpdateIndex;
     },
   },
   actions: {
@@ -206,6 +216,15 @@ const rolesState = {
     setRoleLastPage({ commit }, roleLastPage) {
       commit("setRoleLastPage", roleLastPage);
     },
+
+    updateOneRole({ commit, state }, { roleToUpdate, indexOfTheRole }) {
+      const newRoles = state.roles;
+
+      newRoles[indexOfTheRole].role_name = roleToUpdate.role_name;
+      newRoles[indexOfTheRole].rights = roleToUpdate.rights;
+
+      commit("setRoles", newRoles);
+    },
   },
   getters: {
     showRoleForm: (state) => state.showRoleForm,
@@ -216,6 +235,8 @@ const rolesState = {
     rolePage: (state) => state.rolePage,
     roleLastPage: (state) => state.roleLastPage,
     roleTotal: (state) => state.roleTotal,
+    roleToUpdate: (state) => state.roleToUpdate,
+    roleToUpdateIndex: (state) => state.roleToUpdateIndex,
   },
 };
 

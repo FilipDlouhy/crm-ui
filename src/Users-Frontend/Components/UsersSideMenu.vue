@@ -78,12 +78,15 @@ export default {
     navigateToUsers() {
       if (this.$route.path !== "/Users") {
         this.$router.push("/Users");
+
+        localStorage.setItem("path", "/Users");
       }
     },
 
     navigateToRoles() {
       if (this.$route.path !== "/Roles") {
         this.$router.push("/Roles");
+        localStorage.setItem("path", "/Roles");
       }
     },
   },

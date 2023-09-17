@@ -105,6 +105,7 @@
       </div>
     </div>
     <table-view
+      :clickable="userRights.includes('updateUser')"
       :rows="userTableRows"
       :values="users"
       :removeFilterFunc="removeFilter"
@@ -114,6 +115,7 @@
       :removeFilterSort="removeFilterSort"
       :idOfValueToChangeBy="'user_id'"
       :setValuesToChange="setValuesToChange"
+      :updateFunc="updateUser"
     />
     <table-view-footer
       :lastPage="userLastPage"
@@ -123,14 +125,14 @@
       :decrementPage="removePage"
       :incrementPage="addPage"
     />
-    <add-user-form v-if="showUserAddForm" />
+    <add-update-user-form v-if="showUserAddForm" />
     <add-role-form />
   </div>
 </template>
 <script>
 import TableView from "../../Dashboard/Components/Core/TableView.vue";
 import TableViewFooter from "../../Dashboard/Components/Core/TableViewFooter.vue";
-import AddUserForm from "./AddUserForm.vue";
+import AddUpdateUserForm from "./AddUpdateUserForm.vue";
 
 import { mapGetters } from "vuex";
 import AddRoleForm from "./AddRoleForm.vue";
@@ -187,7 +189,7 @@ export default {
   components: {
     TableView,
     TableViewFooter,
-    AddUserForm,
+    AddUpdateUserForm,
     AddRoleForm,
   },
 
@@ -310,6 +312,12 @@ export default {
         return;
       }
       this.$store.dispatch("toggleAddRemoveRoleForm", { showForm, addRole });
+    },
+
+    async updateUser(updatedUser, userIndex) {
+      this.$store.commit("setUpdatedUser", updatedUser);
+      this.$store.commit("setUpdatedUserIndex", userIndex);
+      this.showAddUserForm();
     },
   },
 

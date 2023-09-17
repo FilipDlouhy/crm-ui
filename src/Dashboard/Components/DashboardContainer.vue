@@ -1,9 +1,9 @@
 <template>
   <div class="dashboard-container">
     <error-popup-modal />
-    <login-form v-if="!isUserLogged" />
+    <login-form v-if="!isUserLogged && isUserLogged != null" />
     <user-info-po-up />
-    <main-dashboard v-if="isUserLogged" />
+    <main-dashboard v-if="isUserLogged && isUserLogged != null" />
     <do-you-want-to-modal />
   </div>
 </template>
@@ -34,10 +34,13 @@ export default {
     }),
   },
 
-  mounted() {
-    if (this.$route.path !== "/Users") {
-      this.$router.push("/Users");
-    }
+  watch: {
+    isUserLogged() {
+      if (this.isUserLogged) {
+        const storedRoute = localStorage.getItem("path");
+        this.$router.push(storedRoute);
+      }
+    },
   },
 };
 </script>

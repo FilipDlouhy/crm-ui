@@ -29,6 +29,7 @@
       <div class="main-bar-service-button-container"></div>
     </div>
     <table-view
+      :clickable="userRights.includes('updateRole')"
       :rows="roleTableRows"
       :values="roles"
       :idOfValueToChangeBy="'role_id'"
@@ -38,6 +39,7 @@
       :filterValuesSort="selectedFiltersSortRole"
       :addFilterSort="addFilterSort"
       :removeFilterSort="removeFilterSort"
+      :updateFunc="updateRole"
     />
     <table-view-footer
       :decrementPage="removePage"
@@ -181,6 +183,12 @@ export default {
       } else {
         this.$store.dispatch("getRoles");
       }
+    },
+
+    updateRole(role, index) {
+      this.$store.dispatch("toggleRoleForm", true);
+      this.$store.commit("setRoleToUpdate", role);
+      this.$store.commit("setRoleToUpdateIndex", index);
     },
   },
 

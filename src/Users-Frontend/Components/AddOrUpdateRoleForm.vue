@@ -23,67 +23,25 @@
             </select>
 
             <div class="check-box-container">
-              <div @change="addOrRemoveRight">
+              <div v-for="checkbox in userServiceRights" :key="checkbox.id">
                 <input
                   type="checkbox"
-                  id="addRemoveRole"
-                  name="Add/Remove role"
+                  :id="checkbox.id"
+                  :name="checkbox.name"
+                  v-model="checkbox.checked"
+                  @change="addOrRemoveRight"
                 />
-                <p>Add/Remove role</p>
-              </div>
-
-              <div @change="addOrRemoveRight">
-                <input
-                  type="checkbox"
-                  id="createDeleteRole"
-                  name="Create/Delete role"
-                />
-                <p>Create/Delete role</p>
-              </div>
-
-              <div @change="addOrRemoveRight">
-                <input
-                  type="checkbox"
-                  id="changeUserState"
-                  name="Change user state"
-                />
-                <p>Change user state</p>
-              </div>
-
-              <div @change="addOrRemoveRight">
-                <input type="checkbox" id="seeUsers" name="See users" />
-                <p>See users</p>
-              </div>
-
-              <div @change="addOrRemoveRight">
-                <input
-                  type="checkbox"
-                  id="seeUserService"
-                  name="See user service"
-                />
-                <p>See user service</p>
-              </div>
-
-              <div @change="addOrRemoveRight">
-                <input type="checkbox" id="seeRoles" name="See roles" />
-                <p>See roles</p>
-              </div>
-
-              <div @change="addOrRemoveRight">
-                <input type="checkbox" id="updateRole" name="Update role" />
-                <p>Update role</p>
-              </div>
-
-              <div @change="addOrRemoveRight">
-                <input type="checkbox" id="updateUser" name="Update user" />
-                <p>Update user</p>
+                <p>{{ checkbox.name }}</p>
               </div>
             </div>
           </div>
         </div>
 
         <div class="role-form-create-button">
-          <button @click="createRole">Create role</button>
+          <button v-if="roleToUpdate == null" @click="createRole">
+            Create role
+          </button>
+          <button v-else @click="updateRole">Update role</button>
         </div>
       </div>
     </div>
@@ -99,18 +57,65 @@ export default {
     return {
       roleName: "",
       rights: [],
+      rightsToUpdate: [],
+
+      userServiceRights: [
+        {
+          id: "addRemoveRole",
+          name: "Add/Remove role",
+          checked: false,
+        },
+        {
+          id: "createDeleteRole",
+          name: "Create/Delete role",
+          checked: false,
+        },
+        {
+          id: "changeUserState",
+          name: "Change user state",
+          checked: false,
+        },
+        {
+          id: "seeUsers",
+          name: "See users",
+          checked: false,
+        },
+        {
+          id: "seeUserService",
+          name: "See user service",
+          checked: false,
+        },
+        {
+          id: "seeRoles",
+          name: "See roles",
+          checked: false,
+        },
+        {
+          id: "updateRole",
+          name: "Update role",
+          checked: false,
+        },
+        {
+          id: "updateUser",
+          name: "Update user",
+          checked: false,
+        },
+      ],
     };
   },
 
   computed: {
     ...mapGetters({
       showRoleForm: "showRoleForm",
+      roleToUpdate: "roleToUpdate",
+      roleToUpdateIndex: "roleToUpdateIndex",
     }),
   },
 
   methods: {
     unShowAddroleForm() {
       const roleFormContainer = this.$refs.roleFormContainer;
+      this.$store.commit("setRoleToUpdate", null);
 
       // Remove all classes from the element
       roleFormContainer.className = "role-form-container-unshow";
@@ -122,15 +127,24 @@ export default {
     },
 
     addOrRemoveRight(event) {
+      let rightsArray =
+        this.roleToUpdate == null ? this.rights : this.rightsToUpdate;
+
       if (event.target.checked === true) {
-        this.rights.push({
+        rightsArray.push({
           displayName: event.target.name,
           name: event.target.id,
         });
       } else {
-        this.rights = this.rights.filter(
-          (right) => right.displayName !== event.target.name
+        rightsArray = rightsArray.filter(
+          (right) => right.name !== event.target.id
         );
+      }
+
+      if (this.roleToUpdate == null) {
+        this.rights = rightsArray;
+      } else {
+        this.rightsToUpdate = rightsArray;
       }
     },
 
@@ -157,15 +171,76 @@ export default {
         }
       );
 
-      console.log(response.data);
-
       if (response.data.error) {
         this.$store.commit("showModal", response.data.error);
         return;
       }
       this.$store.dispatch("openInfoPopUp", "Role created");
       this.$store.dispatch("addRole", response.data);
+
       this.unShowAddroleForm();
+    },
+
+    async updateRole() {
+      const response = await axios.post(
+        "http://localhost:5000/user/role/update-role",
+        {
+          role_name: this.roleName,
+          rights: this.rightsToUpdate,
+          role_id: this.roleToUpdate.role_id,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (response.data.error) {
+        this.$store.commit("showModal", response.data.error);
+        return;
+      }
+
+      this.$store.dispatch("openInfoPopUp", "Role updated");
+      this.$store.dispatch("updateOneRole", {
+        roleToUpdate: { role_name: this.roleName, rights: this.rightsToUpdate },
+        indexOfTheRole: this.roleToUpdateIndex,
+      });
+
+      this.$store.dispatch("updateUserRights");
+
+      this.unShowAddroleForm();
+    },
+  },
+
+  mounted() {
+    if (this.roleToUpdate != null) {
+      this.roleName = this.roleToUpdate.role_name;
+      const roleRights = this.roleToUpdate.rights.map((right) => right.name);
+      this.userServiceRights.map((right) => {
+        if (roleRights.includes(right.id)) {
+          right.checked = true;
+          this.rightsToUpdate.push({ displayName: right.name, name: right.id });
+        }
+      });
+    }
+  },
+
+  watch: {
+    roleToUpdate() {
+      if (this.roleToUpdate != null) {
+        this.roleName = this.roleToUpdate.role_name;
+        const roleRights = this.roleToUpdate.rights.map((right) => right.name);
+        this.userServiceRights.map((right) => {
+          if (roleRights.includes(right.id)) {
+            right.checked = true;
+            this.rightsToUpdate.push({
+              displayName: right.name,
+              name: right.id,
+            });
+          } else {
+            right.checked = false;
+          }
+        });
+      }
     },
   },
 };

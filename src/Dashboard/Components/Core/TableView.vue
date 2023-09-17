@@ -91,7 +91,10 @@
     </div>
 
     <div
-      class="tableview-bar-dashboard-normal-row"
+      :class="{
+        'tableview-bar-dashboard-normal-row-clickable': clickable,
+        'tableview-bar-dashboard-normal-row': !clickable,
+      }"
       v-for="(collumValues, MainIndex) in renderValues"
       :key="MainIndex"
       @click="handleRowClick(MainIndex)"
@@ -160,6 +163,14 @@ export default {
     idOfValueToChangeBy: {
       type: String,
       default: "",
+    },
+    clickable: {
+      type: Boolean,
+      default: false,
+    },
+    updateFunc: {
+      type: Function,
+      default: () => null,
     },
   },
   computed: {
@@ -250,7 +261,11 @@ export default {
     },
 
     handleRowClick(collumnIndex) {
-      console.log(this.values[collumnIndex]);
+      if (!this.clickable) {
+        return;
+      }
+
+      this.updateFunc(this.values[collumnIndex], collumnIndex);
     },
     generateRefName(index) {
       return `normalRowCheckBox${index}`;
@@ -449,6 +464,44 @@ export default {
         height: 15px;
       }
     }
+  }
+}
+
+.tableview-bar-dashboard-normal-row-clickable {
+  width: 100%;
+  height: 35px;
+  display: flex;
+  border-bottom: 1px solid #2c3968;
+  cursor: pointer;
+  transition: 0.3s;
+  div {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    word-wrap: break-word;
+    line-break: anywhere;
+    font-size: 0.8rem;
+    border-right: 1px solid #2c3968;
+    padding: 1px;
+
+    div {
+      width: 30px;
+      height: 100%;
+      border-right: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      input {
+        cursor: pointer;
+        width: 15px;
+        height: 15px;
+      }
+    }
+  }
+
+  &:hover {
+    background-color: #1941d1;
+    color: whitesmoke;
   }
 }
 </style>

@@ -34,7 +34,6 @@ const userState = {
                 return right.name;
               });
             });
-
             // Flatten the array and remove duplicates using a Set
             const uniqueUserRighs = [...new Set(userRights.flat())];
             commit("setLoginState", true);
@@ -51,6 +50,25 @@ const userState = {
 
     setIsUserLogged({ commit }, isLogged) {
       commit("setLoginState", isLogged);
+    },
+
+    async updateUserRights({ commit }) {
+      const response = await Axios.get(
+        "http://localhost:5000/user/get-user-rights",
+        {
+          withCredentials: true,
+        }
+      );
+
+      const userRights = response.data.rights.map((roleRight) => {
+        return roleRight.rights.map((right) => {
+          return right.name;
+        });
+      });
+
+      // Flatten the array and remove duplicates using a Set
+      const uniqueUserRighs = [...new Set(userRights.flat())];
+      commit("setUserRights", uniqueUserRighs);
     },
   },
 

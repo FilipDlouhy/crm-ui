@@ -18,6 +18,8 @@ const usersState = {
     userPage: 1,
     userLastPage: 0,
     userTotal: 0,
+    updatedUser: null,
+    updatedUserIndex: 0,
   },
   mutations: {
     closeAddRemoveRoleFormAnimaton(state) {
@@ -91,6 +93,14 @@ const usersState = {
     },
     setUserLastPage(state, userLastPage) {
       state.userLastPage = userLastPage;
+    },
+
+    setUpdatedUser(state, updatedUser) {
+      state.updatedUser = updatedUser;
+    },
+
+    setUpdatedUserIndex(state, updatedUserIndex) {
+      state.updatedUserIndex = updatedUserIndex;
     },
   },
   actions: {
@@ -278,6 +288,21 @@ const usersState = {
       });
       commit("setUsers", newUsers);
     },
+
+    updateUser({ commit, state }, userDto) {
+      const userToUpdate = state.users[state.updatedUserIndex];
+      userToUpdate.first_name = userDto.first_name;
+      userToUpdate.last_name = userDto.last_name;
+      userToUpdate.roles = userDto.roles;
+      userToUpdate.email = userDto.email;
+      userToUpdate.tel_number = userDto.tel_number;
+
+      const newUsersArray = state.users;
+
+      newUsersArray.slice(state.updatedUserIndex, 1);
+      newUsersArray.push(userToUpdate);
+      commit("setUsers", newUsersArray);
+    },
   },
 
   getters: {
@@ -292,6 +317,8 @@ const usersState = {
     userLastPage: (state) => state.userLastPage,
     addRemoveRoleForm: (state) => state.addRemoveRoleForm,
     addRemoveRoleFormAnimaton: (state) => state.addRemoveRoleFormAnimaton,
+    updatedUser: (state) => state.updatedUser,
+    updatedUserIndex: (state) => state.updatedUserIndex,
   },
 };
 
