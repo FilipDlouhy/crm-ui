@@ -72,6 +72,7 @@
 <script>
 import axios from "axios";
 import { mapGetters } from "vuex";
+import RoleHelper from "../RoleHelper";
 
 export default {
   data() {
@@ -111,13 +112,19 @@ export default {
       }, 1250);
     },
 
+    // This asynchronous method is responsible for adding or updating a user's information.
     async addOrUpdateUser() {
+      // Check for form validation errors by calling 'checkFormValues'.
       const error = this.checkFormValues();
+
+      // If there are validation errors, return early without proceeding further.
       if (error) {
         return;
       }
 
+      // If 'updatedUser' is not null, update an existing user.
       if (this.updatedUser != null) {
+        // Prepare user data to send for updating an existing user.
         const userDto = {
           email: this.email,
           roles: this.rolesToAddOrRemove,
@@ -127,6 +134,7 @@ export default {
           user_id: this.updatedUser.user_id,
         };
 
+        // Send a POST request to the server to update the user's information using axios.
         const response = await axios.post(
           "http://localhost:5000/user/update-user",
           userDto,
@@ -135,36 +143,33 @@ export default {
           }
         );
 
+        // Check if there is an error in the server response.
         if (response.data.error) {
+          // Show a modal with the error message.
           this.$store.commit("showModal", response.data.error);
           return;
         }
+
+        // Show an informational popup indicating the user was updated.
         this.$store.dispatch("openInfoPopUp", "User update");
+
+        // If the user's roles have changed, fetch and update their rights.
         if (response.data.isCurentChanged) {
-          const rights = await axios.get(
-            "http://localhost:5000/get-user-rights",
-            {
-              withCredentials: true,
-            }
-          );
-          if (rights.data.error) {
-            this.$store.commit("showModal", rights.data.error);
-            return;
-          }
+          const uniqueUserRighs = RoleHelper.fetchUserRights();
 
-          const userRights = rights.data.rights.map((roleRight) => {
-            return roleRight.rights.map((right) => {
-              return right.name;
-            });
-          });
-
-          // Flatten the array and remove duplicates using a Set
-          const uniqueUserRighs = [...new Set(userRights.flat())];
+          // Commit a Vuex mutation to set the user rights in the store.
           this.$store.commit("setUserRights", uniqueUserRighs);
         }
+
+        // Dispatch an action to update the user in the store.
         this.$store.dispatch("updateUser", userDto);
+
+        // Call a method to hide the user creation/update form.
         this.unShowAddUserForm();
       } else {
+        // If 'updatedUser' is null, create a new user.
+
+        // Prepare user data to send for creating a new user.
         const userDto = {
           firstName: this.firstName,
           lastName: this.lastName,
@@ -174,6 +179,7 @@ export default {
         };
 
         try {
+          // Send a POST request to the server to create a new user using axios.
           const response = await axios.post(
             "http://localhost:5000/user/user-create",
             userDto,
@@ -182,16 +188,26 @@ export default {
             }
           );
 
+          // Check if there is an error in the server response.
           if (response.data.error) {
+            // Show a modal with the error message.
             this.$store.commit("showModal", response.data.error);
             return;
           }
+
+          // Hide the user creation form.
           this.unShowAddUserForm();
+
+          // Show an informational popup indicating the user was created.
           this.$store.dispatch("openInfoPopUp", "User created");
+
+          // Commit a Vuex mutation to add the new user to the store.
           this.$store.commit("addUser", response.data);
         } catch (error) {
+          // Handle errors that occur during the user creation process.
           console.log(error);
 
+          // Show a modal with a generic error message.
           this.$store.commit(
             "showModal",
             "Something went wrong we are working on the repair"
@@ -200,12 +216,15 @@ export default {
       }
     },
 
+    // This function validates form values and shows an error modal if validation fails.
     checkFormValues() {
+      // Regular expressions for email and telephone number validation.
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const telPattern = /^\d{10}$/;
 
       let error = "";
 
+      // Check various conditions for form validation.
       switch (true) {
         case this.firstName.length === 0:
         case this.lastName.length === 0:
@@ -228,12 +247,14 @@ export default {
           break;
       }
 
+      // If there's an error, show it in a modal and return true to indicate validation failure.
       if (error) {
         this.$store.commit("showModal", error);
         return true;
       }
     },
 
+    // This function sets the form fields with values from the 'updatedUser' object.
     setUpdateUser() {
       if (this.updatedUser != null) {
         this.firstName = this.updatedUser.first_name;
@@ -244,27 +265,34 @@ export default {
           return role;
         });
 
+        // If 'roles' is empty, fetch the roles using 'getRoles' action.
         if (this.roles.length === 0) {
           this.$store.dispatch("getRoles");
         }
+        // Set the text for selected roles.
         this.setRoleText();
       }
     },
 
+    // This function sets the 'roleToRemoveOrAddId' variable for adding or removing roles.
     setRoleToAddOrRemoveId(role) {
       this.roleToRemoveOrAddId = role;
     },
 
+    // This function adds or removes a role based on the 'add' parameter.
     addOrRemoveRole(add) {
       if (add) {
+        // Find the role to add based on 'roleToRemoveOrAddId'.
         const roleToAdd = this.roles.filter((role) => {
           return role.role_id === this.roleToRemoveOrAddId;
         });
 
+        // Extract role IDs from 'rolesToAddOrRemove'.
         const roleIds = this.rolesToAddOrRemove.map((role) => {
           return role.role_id;
         });
 
+        // Add the role if it's not already in 'rolesToAddOrRemove'.
         if (!roleIds.includes(roleToAdd[0].role_id)) {
           this.rolesToAddOrRemove.push({
             displayName: roleToAdd[0].role_name,
@@ -272,17 +300,21 @@ export default {
           });
         }
       } else {
+        // Remove the role from 'rolesToAddOrRemove' based on 'roleToRemoveOrAddId'.
         this.rolesToAddOrRemove = this.rolesToAddOrRemove.filter((role) => {
           return role.role_id !== this.roleToRemoveOrAddId;
         });
       }
 
+      // Update the text for selected roles.
       this.setRoleText();
     },
 
+    // This function sets the text representation of selected roles in 'rolesText'.
     setRoleText() {
       this.rolesText = "";
 
+      // Map selected roles to their display names and join them into a comma-separated string.
       this.rolesText = this.rolesToAddOrRemove.map((role) => {
         return role.displayName;
       });

@@ -53,12 +53,15 @@ export default {
   },
 
   methods: {
+    // This asynchronous method registers a new user.
     async registerUser() {
+      // Regular expressions for email and telephone number validation.
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const telPattern = /^\d{10}$/;
 
       let error = "";
 
+      // Validate form input fields.
       switch (true) {
         case this.firstName.length === 0:
         case this.lastName.length === 0:
@@ -81,11 +84,13 @@ export default {
           break;
       }
 
+      // If there's an error, show it in a modal and return.
       if (error) {
         this.$store.commit("showModal", error);
         return;
       }
 
+      // Create a user data transfer object (DTO).
       const userDto = {
         firstName: this.firstName,
         lastName: this.lastName,
@@ -95,6 +100,7 @@ export default {
       };
 
       try {
+        // Send a POST request to create a user with the provided data.
         const response = await axios.post(
           "http://localhost:5000/create-user-from-login",
           userDto,
@@ -103,33 +109,42 @@ export default {
           }
         );
 
+        // Handle any error returned from the server.
         if (response.data.error) {
           this.$store.commit("showModal", response.data.error);
         }
 
+        // Dispatch a Vuex action to open an information popup.
         this.$store.dispatch("openInfoPopUp", "User created");
 
+        // Set the user's login status.
         this.setIsloggingIn();
       } catch (error) {
+        // Handle network or server errors.
         this.$store.commit(
           "showModal",
-          "Something went wrong we are working on the repair"
+          "Something went wrong; we are working on the repair"
         );
       }
     },
 
+    // This asynchronous method logs in a user.
     async loginUser() {
       try {
+        // Create a user data transfer object (DTO) with email and password.
         const userDto = {
           email: this.email,
           password: this.password,
           decode: true,
         };
 
+        // Validate form input fields.
         if (this.email.length === 0 || this.password.length === 0) {
           this.$store.commit("showModal", "Please fill all fields in the form");
           return;
         }
+
+        // Send a POST request to log in the user.
         const response = await axios.post(
           "http://localhost:5000/login-from-login",
           userDto,
@@ -138,11 +153,13 @@ export default {
           }
         );
 
+        // Handle any error returned from the server.
         if (response.data.error) {
           this.$store.commit("showModal", response.data.error);
           return;
         }
 
+        // Fetch user rights after successful login.
         const rights = await axios.get(
           "http://localhost:5000/get-user-rights",
           {
@@ -150,11 +167,13 @@ export default {
           }
         );
 
+        // Handle any error while fetching user rights.
         if (rights.data.error) {
           this.$store.commit("showModal", rights.data.error);
           return;
         }
 
+        // If login is successful, set the user's login state and rights in the Vuex store.
         if (!response.data.error) {
           const userRights = rights.data.rights.map((roleRight) => {
             return roleRight.rights.map((right) => {
@@ -162,15 +181,16 @@ export default {
             });
           });
 
-          // Flatten the array and remove duplicates using a Set
-          const uniqueUserRighs = [...new Set(userRights.flat())];
+          // Flatten the array and remove duplicates using a Set.
+          const uniqueUserRights = [...new Set(userRights.flat())];
           this.$store.dispatch("setIsUserLogged", true);
-          this.$store.commit("setUserRights", uniqueUserRighs);
+          this.$store.commit("setUserRights", uniqueUserRights);
         }
       } catch (error) {
+        // Handle network or server errors.
         this.$store.commit(
           "showModal",
-          "Something Went wrong we are working on the repair"
+          "Something went wrong; we are working on the repair"
         );
       }
     },

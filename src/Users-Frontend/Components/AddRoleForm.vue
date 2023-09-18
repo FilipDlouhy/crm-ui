@@ -26,6 +26,7 @@
 <script>
 import axios from "axios";
 import { mapGetters } from "vuex";
+import RoleHelper from "../RoleHelper";
 export default {
   data() {
     return {
@@ -43,10 +44,15 @@ export default {
   },
 
   methods: {
+    // This method hides the form for adding or removing roles.
     unShowForm() {
+      // Clear the 'rolesToChange' array.
       this.rolesToChange = [];
+
+      // Commit a Vuex mutation to close the add/remove role form animation.
       this.$store.commit("closeAddRemoveRoleFormAnimaton");
 
+      // Use a setTimeout to delay committing a Vuex mutation to toggle the form visibility.
       setTimeout(() => {
         this.$store.commit("toggleAddRemoveRoleForm", {
           showForm: false,
@@ -55,20 +61,25 @@ export default {
       }, 500);
     },
 
+    // This method adds or removes a role from 'rolesToChange' based on checkbox state.
     addOrRemoveRole(role) {
       if (event.target.checked) {
+        // Add the role to 'rolesToChange'.
         this.rolesToChange.push({
           role_id: role.role_id,
           displayName: role.role_name,
         });
       } else {
+        // Remove the role from 'rolesToChange' based on 'role_id'.
         this.rolesToChange = this.rolesToChange.filter(
           (filterRole) => filterRole.role_id !== role.role_id
         );
       }
     },
 
+    // This asynchronous method updates user roles and handles server responses.
     async updateUserRoles() {
+      // Send a POST request to the server to update user roles using axios.
       const response = await axios.post(
         "http://localhost:5000/user/update-roles",
         {
@@ -81,34 +92,22 @@ export default {
         }
       );
 
+      // Check if there is no error in the server response.
       if (response.data.error === false) {
         if (response.data.isCurentChanged) {
-          const rights = await axios.get(
-            "http://localhost:5000/get-user-rights",
-            {
-              withCredentials: true,
-            }
-          );
-          if (rights.data.error) {
-            this.$store.commit("showModal", rights.data.error);
-            return;
-          }
+          const uniqueUserRighs = RoleHelper.fetchUserRights();
 
-          const userRights = rights.data.rights.map((roleRight) => {
-            return roleRight.rights.map((right) => {
-              return right.name;
-            });
-          });
-
-          // Flatten the array and remove duplicates using a Set
-          const uniqueUserRighs = [...new Set(userRights.flat())];
+          // Commit a Vuex mutation to set the user rights in the store.
           this.$store.commit("setUserRights", uniqueUserRighs);
         }
 
+        // Dispatch an action to update users' roles in the store.
         this.$store.dispatch("updateUsersRoles", response.data.updatedUsers);
 
+        // Hide the form.
         this.unShowForm();
 
+        // Use a setTimeout to delay displaying an informational popup.
         setTimeout(() => {
           this.$store.dispatch("openInfoPopUp", response.data.message);
         }, 500);

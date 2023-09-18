@@ -126,43 +126,54 @@ export default {
       }, 1250);
     },
 
+    // This function is used to add or remove rights to/from an array based on a checkbox event.
     addOrRemoveRight(event) {
+      // Determine the rights array to modify based on whether 'roleToUpdate' is null.
       let rightsArray =
         this.roleToUpdate == null ? this.rights : this.rightsToUpdate;
 
+      // If the checkbox is checked (event.target.checked === true), add a new right object to the array.
       if (event.target.checked === true) {
         rightsArray.push({
           displayName: event.target.name,
           name: event.target.id,
         });
       } else {
+        // If the checkbox is unchecked, filter out the right with the matching 'id' from the array.
         rightsArray = rightsArray.filter(
           (right) => right.name !== event.target.id
         );
       }
 
+      // Update the original rights array or rightsToUpdate array based on 'roleToUpdate' value.
       if (this.roleToUpdate == null) {
-        this.rights = rightsArray;
+        this.rights = rightsArray; // Update the 'rights' array if 'roleToUpdate' is null.
       } else {
-        this.rightsToUpdate = rightsArray;
+        this.rightsToUpdate = rightsArray; // Update the 'rightsToUpdate' array if 'roleToUpdate' is not null.
       }
     },
 
+    // This asynchronous function is responsible for creating a role and sending a POST request to the server.
     async createRole() {
+      // Check if there are no selected rights and show a modal message if none are selected.
       if (this.rights.length === 0) {
         this.$store.commit("showModal", "Select at least one right");
         return;
       }
 
+      // Check if the role name is empty and show a modal message if it is.
       if (this.roleName.length === 0) {
         this.$store.commit("showModal", "Name the role");
         return;
       }
 
+      // Prepare a data object ('roleDto') containing selected rights and the role name.
       const roleDto = {
         rights: this.rights,
         roleName: this.roleName,
       };
+
+      // Send a POST request to the server to create the role using axios.
       const response = await axios.post(
         "http://localhost:5000/user/role/role-create",
         roleDto,
@@ -171,17 +182,25 @@ export default {
         }
       );
 
+      // Check if the server response contains an error message and show it in a modal if present.
       if (response.data.error) {
         this.$store.commit("showModal", response.data.error);
         return;
       }
+
+      // Show an informational popup indicating the successful creation of the role.
       this.$store.dispatch("openInfoPopUp", "Role created");
+
+      // Dispatch an action to add the created role to the store's data.
       this.$store.dispatch("addRole", response.data);
 
+      // Call a method ('unShowAddroleForm') to hide the role creation form.
       this.unShowAddroleForm();
     },
 
+    // This asynchronous function is responsible for updating a role and sending a POST request to the server for the update.
     async updateRole() {
+      // Send a POST request to the server to update the role using axios.
       const response = await axios.post(
         "http://localhost:5000/user/role/update-role",
         {
@@ -194,53 +213,67 @@ export default {
         }
       );
 
+      // Check if the server response contains an error message and show it in a modal if present.
       if (response.data.error) {
         this.$store.commit("showModal", response.data.error);
         return;
       }
 
+      // Show an informational popup indicating the successful update of the role.
       this.$store.dispatch("openInfoPopUp", "Role updated");
+
+      // Dispatch an action to update the role data in the store.
       this.$store.dispatch("updateOneRole", {
         roleToUpdate: { role_name: this.roleName, rights: this.rightsToUpdate },
         indexOfTheRole: this.roleToUpdateIndex,
       });
 
+      // Dispatch an action to update user rights (assuming this is necessary for your application).
       this.$store.dispatch("updateUserRights");
 
+      // Call a method ('unShowAddroleForm') to hide the role update form.
       this.unShowAddroleForm();
     },
-  },
 
-  mounted() {
-    if (this.roleToUpdate != null) {
-      this.roleName = this.roleToUpdate.role_name;
-      const roleRights = this.roleToUpdate.rights.map((right) => right.name);
-      this.userServiceRights.map((right) => {
-        if (roleRights.includes(right.id)) {
-          right.checked = true;
-          this.rightsToUpdate.push({ displayName: right.name, name: right.id });
-        }
-      });
-    }
-  },
-
-  watch: {
-    roleToUpdate() {
+    // This method updates the role data and rights based on the 'roleToUpdate' property.
+    // The 'watch' parameter is used to control whether to update 'right.checked' when it's false.
+    updateRoleData(watch) {
+      // Check if 'roleToUpdate' is not null.
       if (this.roleToUpdate != null) {
+        // Update the 'roleName' with the name from 'roleToUpdate'.
         this.roleName = this.roleToUpdate.role_name;
+
+        // Extract the names of rights associated with 'roleToUpdate'.
         const roleRights = this.roleToUpdate.rights.map((right) => right.name);
-        this.userServiceRights.map((right) => {
+
+        // Iterate through 'userServiceRights'.
+        this.userServiceRights.forEach((right) => {
+          // Check if 'roleRights' includes the 'id' of the current 'right'.
           if (roleRights.includes(right.id)) {
+            // If included, set 'right.checked' to true and add it to 'rightsToUpdate'.
             right.checked = true;
             this.rightsToUpdate.push({
               displayName: right.name,
               name: right.id,
             });
           } else {
-            right.checked = false;
+            // If not included and 'watch' is true, set 'right.checked' to false.
+            if (watch) {
+              right.checked = false;
+            }
           }
         });
       }
+    },
+  },
+
+  mounted() {
+    this.updateRoleData(false);
+  },
+
+  watch: {
+    roleToUpdate() {
+      this.updateRoleData(true);
     },
   },
 };

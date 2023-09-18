@@ -37,7 +37,6 @@ export default {
 
   methods: {
     async logout() {
-      console.log("AAA");
       const response = await axios.post("http://localhost:5000/logout", null, {
         withCredentials: true,
       });
