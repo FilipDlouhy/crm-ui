@@ -62,6 +62,8 @@ export default {
         localStorage.setItem("activeMenu", "users");
         this.$store.commit("setActiveMenu", "users");
         this.$store.commit("setActiveSubMenu", "users");
+        localStorage.setItem("path", "/Users");
+        this.$router.push("/Users");
       }
     },
 

@@ -16,8 +16,6 @@ const userState = {
     },
 
     setUserRights(state, userRights) {
-      console.log(userRights);
-
       state.userRights = userRights;
     },
   },

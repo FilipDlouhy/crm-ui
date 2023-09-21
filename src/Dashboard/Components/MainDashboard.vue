@@ -6,6 +6,7 @@
         <p>TechTrack</p>
       </div>
       <users-side-menu />
+      <contacts-side-menu />
     </div>
 
     <div v-if="activeMenu" class="main-bar">
@@ -22,10 +23,12 @@
 import UsersSideMenu from "../../Users-Frontend/Components/UsersSideMenu.vue";
 import { mapGetters } from "vuex";
 import axios from "axios";
+import ContactsSideMenu from "../../Contacts-frontend/Components/ContactsSideMenu.vue";
 
 export default {
   components: {
     UsersSideMenu,
+    ContactsSideMenu,
   },
 
   computed: {

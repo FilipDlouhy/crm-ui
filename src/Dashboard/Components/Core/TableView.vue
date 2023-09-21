@@ -4,7 +4,11 @@
       class="tableview-bar-dashboard-main-row"
       :style="{ width: rowWidth + 'px' }"
     >
-      <div v-for="(collumName, index) in rows" :key="index">
+      <div
+        v-for="(collumName, index) in rows"
+        :style="{ width: getLarge(index) + 'px' }"
+        :key="index"
+      >
         <div v-if="index === 0">
           <input type="checkbox" @click="toggleSelectAll" :ref="'main'" />
         </div>
@@ -303,7 +307,7 @@ export default {
       this.updateFunc(this.values[collumnIndex], collumnIndex);
     },
     generateRefName(index) {
-      return normalRowCheckBox${index};
+      return `normalRowCheckBox${index}`;
     },
 
     formatDateString(inputString) {
@@ -338,6 +342,8 @@ export default {
     getLarge(index) {
       if (this.rows[index].large) {
         return 440;
+      } else if (this.rows[index].bigger) {
+        return 280;
       } else {
         return 220;
       }

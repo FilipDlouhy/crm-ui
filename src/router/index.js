@@ -2,7 +2,7 @@ import Vue from "vue";
 import VueRouter from "vue-router";
 import UsersDashboard from "../Users-Frontend/Components/UsersDashboard.vue";
 import RolesDashboard from "../Users-Frontend/Components/RolesDashboard.vue";
-
+import AllContactsDashboard from "../Contacts-frontend/Components/AllContactsDashboard.vue";
 import store from "@/store";
 
 Vue.use(VueRouter);
@@ -10,6 +10,7 @@ Vue.use(VueRouter);
 const routes = [
   { path: "/Users", component: UsersDashboard },
   { path: "/Roles", component: RolesDashboard },
+  { path: "/AllContacts", component: AllContactsDashboard },
   { path: "/", component: null },
   // Add a protected route that requires authentication
 ];
