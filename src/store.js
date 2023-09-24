@@ -6,6 +6,7 @@ import activeMenuState from "./State/ActiveMenuState";
 import usersState from "./Users-Frontend/State/usersState";
 import rolesState from "./Users-Frontend/State/roleState";
 import contactFormState from "./Contacts-frontend/State/contactFormsState";
+import contactState from "./Contacts-frontend/State/contactState";
 Vue.use(Vuex);
 
 const store = new Vuex.Store({
@@ -16,6 +17,7 @@ const store = new Vuex.Store({
     usersState: usersState,
     rolesState: rolesState,
     contactFormState: contactFormState,
+    contactState: contactState,
   },
 });
 

@@ -112,6 +112,11 @@ export default {
         this.$store.commit("setActiveSubMenu", "allContacts");
         localStorage.setItem("path", "/AllContacts");
         this.$router.push("/AllContacts");
+        this.$store.commit(
+          "setActiveMenuText",
+          "/Contact-Service/All Contacts"
+        );
+        localStorage.setItem("activeMenuText", "/Contact-Service/All Contacts");
       }
     },
 

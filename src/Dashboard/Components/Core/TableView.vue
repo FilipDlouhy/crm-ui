@@ -116,13 +116,21 @@
             :ref="generateRefName(MainIndex)"
           />
         </div>
-        <p>{{ formatDateString(collumValue) }}</p>
+        <p v-if="Object.keys(collumValues)[index] !== 'organization_or_person'">
+          {{ formatRowValue(collumValue, collumValues, index) }}
+        </p>
+
+        <i v-else class="material-icons" :style="{ margin: '0 auto' }">{{
+          getIcon(collumValue)
+        }}</i>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import ContactHelper from "../../../Contacts-frontend/ContactHelper";
+
 export default {
   data() {
     return {
@@ -202,7 +210,13 @@ export default {
               renderObjs[row.value] = displayNames.join(", ");
             } else {
               // If they are not objects, join the array elements into a comma-separated string.
-              renderObjs[row.value] = obj[row.value].join(", ");
+              renderObjs[row.value] = obj[row.value]
+                .map((word) =>
+                  word && typeof word === "string"
+                    ? word.charAt(0).toUpperCase() + word.slice(1)
+                    : word
+                )
+                .join(", ");
             }
           } else {
             // If the value is not an array, simply assign it to the 'renderObjs' object.
@@ -229,6 +243,25 @@ export default {
   },
 
   methods: {
+    formatRowValue(collumValue, collumValues, index) {
+      // Check if the value is a valid date
+      const isDate = !isNaN(Date.parse(collumValue));
+
+      if (isDate) {
+        // If it's a valid date, you can format it or perform any other actions
+        const formattedDate = this.formatDateString(collumValue);
+        return formattedDate;
+      } else if (Object.keys(collumValues)[index] === "contact_type") {
+        return ContactHelper.getContactNameText(collumValue);
+      } else {
+        return collumValue;
+      }
+    },
+
+    getIcon(icon) {
+      return ContactHelper.getContactIcon(icon);
+    },
+
     // This method toggles the selection of all values in a list.
     toggleSelectAll() {
       // Clear the 'valuesToChange' array.

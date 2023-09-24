@@ -12,62 +12,84 @@
           <option value="jobCandidate">Add Job Candidate</option>
         </select>
 
-        <button>
-          Contact remove
+        <button
+          @click="removeContacts('Dou you want to delete these contacts')"
+        >
+          Remove contacts
 
           <i class="material-icons"> person_remove </i>
         </button>
       </div>
 
       <div class="main-bar-filter-container">
-        <select
-          @change="setIndexOfFilter($event.target.selectedIndex)"
-          v-model="filterName"
-        >
+        <select v-model="filterName">
           <option
             v-for="(row, index) in filterableContactTableRows"
             :key="index"
+            :value="row.value"
           >
             {{ row.displayText }}
           </option>
         </select>
+        <select
+          v-model="personOrOrganizationValue"
+          @change="addFilterPersonOrOrganization"
+        >
+          <option value="all">All</option>
+          <option value="person">Person</option>
+          <option value="organization">Organization</option>
+        </select>
         <input v-model="filterValue" type="text" />
-        <button>Filter</button>
+        <button @click="addFilter">Filter</button>
       </div>
 
       <div class="main-bar-service-button-container"></div>
     </div>
-    <table-view :rows="contactTableRows" :values="values" />
-    <table-view-footer />
-    <add-job-candidate-form v-if="currentContactForm === 'jobCandidate'" />
-    <add-customer-vendor-form
-      v-if="
-        currentContactForm === 'customer' || currentContactForm === 'vendor'
-      "
+    <table-view
+      :rows="contactTableRows"
+      :values="contacts"
+      :id-of-value-to-change-by="'contact_id'"
+      :clickable="true"
+      :set-values-to-change="setValuesToChange"
+      :filter-values="contactFilters"
+      :remove-filter-func="removeFilter"
+      :add-filter-sort="addFilterSort"
+      :remove-filter-sort="removeFilterSort"
+      :filter-values-sort="contactFiltersSort"
     />
-    <add-worker-form v-if="currentContactForm === 'worker'" />
+    <table-view-footer
+      :page="contactFirstPage"
+      :total="totalCount"
+      :total-message="'Total number of contacts is'"
+      :last-page="contactLastPage"
+      :decrement-page="removePage"
+      :increment-page="addPage"
+    />
+
+    <add-contact-form
+      ref="addContactForm"
+      v-if="currentContactForm.length > 0"
+    />
   </div>
 </template>
 <script>
 import TableView from "../../Dashboard/Components/Core/TableView.vue";
 import TableViewFooter from "../../Dashboard/Components/Core/TableViewFooter.vue";
-import AddJobCandidateForm from "./AddJobCandidateForm.vue";
 import { mapGetters } from "vuex";
-import AddWorkerForm from "./AddWorkerForm.vue";
-import AddCustomerVendorForm from "./AddCustomerVendorForm.vue";
+import AddContactForm from "./AddContactForm.vue";
 export default {
   data() {
     return {
       contactTableRows: [
         {
           displayText: "First name",
-          value: "contact_first_name",
+          value: "first_name",
           sortable: true,
           filterable: true,
         },
         {
           displayText: "Last name",
-          value: "contact_last_name",
+          value: "last_name",
           sortable: true,
           filterable: true,
         },
@@ -84,20 +106,18 @@ export default {
           sortable: true,
         },
         {
-          displayText: "Contact type",
-          value: "type",
-          sortable: true,
-          filterable: true,
+          displayText: "Contact roles",
+          value: "contact_roles",
         },
         {
-          displayText: "Adress",
-          value: "type",
+          displayText: "Address",
+          value: "address",
           sortable: true,
           filterable: true,
         },
         {
           displayText: "Organization/Person",
-          value: "organization_or_peson",
+          value: "organization_or_person",
           bigger: true,
           sortable: true,
           filterable: true,
@@ -109,31 +129,24 @@ export default {
           filterable: true,
         },
         {
-          displayText: "Contact roles",
-          value: "contact_role",
-          sortable: true,
-          filterable: true,
-        },
-        {
           displayText: "Contact email",
           value: "email",
           sortable: true,
           filterable: true,
         },
       ],
-      values: [],
       filterValue: "",
       selectedIndex: 0,
       filterName: "",
       chosenFormText: "",
+      personOrOrganizationValue: "",
+      unShowFormFunction: undefined,
     };
   },
   components: {
     TableView,
     TableViewFooter,
-    AddJobCandidateForm,
-    AddWorkerForm,
-    AddCustomerVendorForm,
+    AddContactForm,
   },
 
   computed: {
@@ -143,11 +156,32 @@ export default {
 
     ...mapGetters({
       currentContactForm: "currentContactForm",
+      contacts: "contacts",
+      contactsToChange: "contactsToChange",
+      contactFilters: "contactFilters",
+      contactFiltersSort: "contactFiltersSort",
+      totalCount: "totalCount",
+      contactFirstPage: "contactFirstPage",
+      contactLastPage: "contactLastPage",
     }),
   },
 
   methods: {
-    chooseContactFormToOpen(event) {
+    async chooseContactFormToOpen(event) {
+      // Check if the addContactForm component is rendered
+      if (this.$refs.addContactForm) {
+        this.$refs.addContactForm.unShowContactForm();
+        setTimeout(() => {
+          this.setAddContactFormToShow(event);
+        }, 1400);
+      } else {
+        this.setAddContactFormToShow(event);
+      }
+
+      // Wait for 1.25 seconds before executing the rest of the code
+    },
+
+    setAddContactFormToShow(event) {
       this.$store.dispatch("updateCurrentContactForm", event.target.value);
       switch (event.target.value) {
         case "jobCandidate":
@@ -167,6 +201,92 @@ export default {
       }
       event.target.value = "none";
     },
+
+    setValuesToChange(valuesToChange) {
+      this.$store.commit("setConstactsToChange", valuesToChange);
+    },
+
+    removeContacts(message) {
+      if (this.contactsToChange.length === 0) {
+        return 0;
+      }
+      this.$store.commit("showDoYouWantToModal", message);
+      this.$store.dispatch("setDoYouWantToModalFunction", "deleteContacts");
+    },
+
+    addFilterPersonOrOrganization(event) {
+      this.$store.dispatch("addFilterstToContact", {
+        filterName: "organization_or_person",
+        filterValue: event.target.value,
+      });
+
+      this.$store.dispatch("getContactsWithFilters");
+    },
+
+    addFilter() {
+      if (this.filterName.length === 0 || this.filterValue.length === 0) {
+        return;
+      }
+
+      this.$store.dispatch("addFilterstToContact", {
+        filterName: this.filterName,
+        filterValue: this.filterValue,
+      });
+
+      this.$store.dispatch("getContactsWithFilters");
+      this.filterValue = "";
+    },
+
+    removeFilter(collumName) {
+      this.$store.dispatch("removeFilterContacts", collumName);
+      this.$store.dispatch("getContactsWithFilters");
+    },
+
+    async addFilterSort(collumName, ascending) {
+      await this.$store.dispatch("addFilterSortForContacts", {
+        filterName: collumName,
+        ascending: ascending,
+      });
+
+      await this.$store.dispatch("getContactsWithFilters");
+    },
+    async removeFilterSort(collumName) {
+      await this.$store.dispatch("removeFilterSortForContacts", collumName);
+      await this.$store.dispatch("getContactsWithFilters");
+    },
+
+    addPage() {
+      if (this.contactFirstPage + 1 > this.contactLastPage) {
+        return;
+      }
+      this.$store.commit("setContactFirstPage", this.contactFirstPage + 1);
+      if (
+        this.contactFilters.length > 0 ||
+        this.contactFiltersSort.length > 0
+      ) {
+        this.$store.dispatch("getContactsWithFilters");
+      } else {
+        this.$store.dispatch("getContacts");
+      }
+    },
+
+    removePage() {
+      if (this.contactFirstPage - 1 < 1) {
+        return;
+      }
+      this.$store.commit("setContactFirstPage", this.contactFirstPage - 1);
+      if (
+        this.contactFilters.length > 0 ||
+        this.contactFiltersSort.length > 0
+      ) {
+        this.$store.dispatch("getContactsWithFilters");
+      } else {
+        this.$store.dispatch("getContacts");
+      }
+    },
+  },
+  async mounted() {
+    this.$store.dispatch("getContacts");
   },
 };
 </script>
@@ -235,7 +355,7 @@ export default {
 }
 
 .main-bar-filter-container {
-  width: 500px;
+  width: 600px;
   display: flex;
   align-items: center;
   justify-content: space-evenly;
@@ -297,7 +417,7 @@ export default {
 }
 
 .main-bar-service-button-container {
-  width: 600px;
+  width: 400px;
   display: flex;
   align-items: center;
   height: 100%;

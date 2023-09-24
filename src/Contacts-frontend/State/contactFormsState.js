@@ -4,6 +4,8 @@ const contactFormState = {
   },
   mutations: {
     setCurrentContactForm(state, formName) {
+      state.currentContactForm = "";
+
       state.currentContactForm = formName;
     },
   },
