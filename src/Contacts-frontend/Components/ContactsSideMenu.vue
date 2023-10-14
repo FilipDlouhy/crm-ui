@@ -2,7 +2,7 @@
   <div>
     <div
       :class="activeMenu === 'contacts' ? 'selected-service' : 'service'"
-      @click="setUsersAsActiveMenu"
+      @click="setContactsAsActiveMenu"
     >
       <div class="service-name">
         <i class="material-icons"> account_box </i>
@@ -19,7 +19,8 @@
         "
         @click="
           setAsActiveSubMenu('allContacts'),
-            setAsActiveMenuText('/Contact-Service/All Contacts')
+            setAsActiveMenuText('/Contact-Service/All Contacts'),
+            navigateToAllContacts()
         "
       >
         <div>
@@ -34,7 +35,8 @@
         "
         @click="
           setAsActiveSubMenu('customers'),
-            setAsActiveMenuText('/Contact-Service/Customers')
+            setAsActiveMenuText('/Contact-Service/Customers'),
+            navigateToContact('Customers')
         "
       >
         <div>
@@ -49,7 +51,8 @@
         "
         @click="
           setAsActiveSubMenu('workers'),
-            setAsActiveMenuText('/Contact-Service/Workers')
+            setAsActiveMenuText('/Contact-Service/Workers'),
+            navigateToContact('Workers')
         "
       >
         <div>
@@ -64,7 +67,8 @@
         "
         @click="
           setAsActiveSubMenu('vendors'),
-            setAsActiveMenuText('/Contact-Service/Vendors')
+            setAsActiveMenuText('/Contact-Service/Vendors'),
+            navigateToContact('Vendors')
         "
       >
         <div>
@@ -81,7 +85,8 @@
         "
         @click="
           setAsActiveSubMenu('jobCandidates'),
-            setAsActiveMenuText('/Contact-Service/Job Candidates')
+            setAsActiveMenuText('/Contact-Service/Job Candidates'),
+            navigateToContact('JobCandidates')
         "
       >
         <div>
@@ -105,18 +110,40 @@ export default {
   },
 
   methods: {
-    setUsersAsActiveMenu() {
+    setContactsAsActiveMenu() {
       if (this.activeMenu !== "contacts") {
         localStorage.setItem("activeMenu", "contacts");
         this.$store.commit("setActiveMenu", "contacts");
         this.$store.commit("setActiveSubMenu", "allContacts");
-        localStorage.setItem("path", "/AllContacts");
-        this.$router.push("/AllContacts");
+        localStorage.setItem("path", "/Contacts/AllContacts");
+        this.$router.push("/Contacts/AllContacts");
         this.$store.commit(
           "setActiveMenuText",
           "/Contact-Service/All Contacts"
         );
         localStorage.setItem("activeMenuText", "/Contact-Service/All Contacts");
+      }
+    },
+
+    navigateToContact(type) {
+      const path = `/Contacts/${type}`;
+      if (this.$route.path !== path) {
+        localStorage.setItem("path", path);
+        this.$router.push(path);
+        this.$store.dispatch("resetAllContactsState");
+        const contactType =
+          type === "JobCandidates"
+            ? "jobCandidate"
+            : type.toLowerCase().slice(0, -1);
+        this.$store.commit("setTypeOfContactToShow", contactType);
+      }
+    },
+
+    navigateToAllContacts() {
+      if (this.$route.path !== "/Contacts/AllContacts") {
+        this.$store.dispatch("resetAllContactsState");
+        localStorage.setItem("path", "/Contacts/AllContacts");
+        this.$router.push("/Contacts/AllContacts");
       }
     },
 

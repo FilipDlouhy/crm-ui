@@ -243,18 +243,22 @@ export default {
   },
 
   methods: {
-    formatRowValue(collumValue, collumValues, index) {
+    formatRowValue(columnValue, columnValues, index) {
       // Check if the value is a valid date
-      const isDate = !isNaN(Date.parse(collumValue));
+      const isDate = !isNaN(Date.parse(columnValue));
 
       if (isDate) {
         // If it's a valid date, you can format it or perform any other actions
-        const formattedDate = this.formatDateString(collumValue);
+        const formattedDate = this.formatDateString(columnValue);
         return formattedDate;
-      } else if (Object.keys(collumValues)[index] === "contact_type") {
-        return ContactHelper.getContactNameText(collumValue);
+      } else if (Object.keys(columnValues)[index] === "contact_type") {
+        return ContactHelper.getContactNameText(columnValue);
+      } else if (typeof columnValue === "boolean") {
+        // If it's a boolean, return "Yes" for true and "No" for false
+        return columnValue ? "Yes" : "No";
       } else {
-        return collumValue;
+        // Return the original value for other data types
+        return columnValue;
       }
     },
 
@@ -385,6 +389,9 @@ export default {
 
   watch: {
     values() {
+      if (this.valuesToChange.length === 0) {
+        return;
+      }
       this.uncheckAll();
     },
   },

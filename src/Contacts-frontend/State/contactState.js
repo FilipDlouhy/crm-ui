@@ -13,6 +13,9 @@ const contactState = {
     totalCount: 0,
     contactFirstPage: 1,
     contactLastPage: 0,
+    typeOfContactToShow: "",
+    contactToUpdate: {},
+    showUpdateContactRolesForm: false,
   },
   mutations: {
     setConstacts(state, contact) {
@@ -28,7 +31,9 @@ const contactState = {
     setConstactFiltersSort(state, contactFiltersSort) {
       state.contactFiltersSort = contactFiltersSort;
     },
-
+    setContactToUpdateRoles(state, contact_roles) {
+      state.contactToUpdate.contact_roles = contact_roles;
+    },
     setTotalCount(state, totalCount) {
       state.totalCount = totalCount;
     },
@@ -38,15 +43,38 @@ const contactState = {
     setContactLastPage(state, contactLastPage) {
       state.contactLastPage = contactLastPage;
     },
+
+    setTypeOfContactToShow(state, typeOfContactToShow) {
+      state.typeOfContactToShow = typeOfContactToShow;
+    },
+    setContactToUpdate(state, contactToUpdate) {
+      state.contactToUpdate = contactToUpdate;
+    },
+
+    setShowUpdateContactRolesForm(state, showUpdateContactRolesForm) {
+      state.showUpdateContactRolesForm = showUpdateContactRolesForm;
+    },
   },
   actions: {
     // Action to add a contact
     async getContacts({ commit, state }) {
-      console.log("KUNDO");
       const response = await axios.get(
         "http://localhost:5000/contact/get-contacts",
         {
           params: { page: state.contactFirstPage },
+          withCredentials: true,
+        }
+      );
+      commit("setTotalCount", response.data.count);
+      commit("setContactLastPage", Math.ceil(response.data.count / 25));
+      commit("setConstacts", response.data.contacts);
+    },
+
+    async getContactsByType({ commit, state }, contactType) {
+      const response = await axios.get(
+        "http://localhost:5000/contact/get-contacts",
+        {
+          params: { page: state.contactFirstPage, contactType: contactType },
           withCredentials: true,
         }
       );
@@ -128,6 +156,24 @@ const contactState = {
       commit("setContactLastPage", Math.ceil(response.data.count / 25));
     },
 
+    async getContactsWithFiltersByType({ commit, state }, contactType) {
+      const response = await axios.post(
+        "http://localhost:5000/contact/get-contacts-with-filters",
+        {
+          filters: state.contactFilters,
+          sortables: state.contactFiltersSort,
+          page: state.contactFirstPage,
+          contactType: contactType,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+      commit("setConstacts", response.data.contacts);
+      commit("setTotalCount", response.data.count);
+      commit("setContactLastPage", Math.ceil(response.data.count / 25));
+    },
+
     removeFilterContacts({ commit, state }, filterName) {
       const newFilterArray = removeSelectedFilter(
         state.contactFilters,
@@ -151,7 +197,18 @@ const contactState = {
       );
       commit("setConstactFiltersSort", newSortables);
     },
+
+    resetAllContactsState({ commit }) {
+      commit("setConstacts", []);
+      commit("setConstactsToChange", []);
+      commit("setConstactFilters", []);
+      commit("setConstactFiltersSort", []);
+      commit("setTotalCount", 0);
+      commit("setContactFirstPage", 1);
+      commit("setContactLastPage", 1);
+    },
   },
+
   getters: {
     contacts(state) {
       return state.contacts;
@@ -175,6 +232,18 @@ const contactState = {
     },
     contactLastPage(state) {
       return state.contactLastPage;
+    },
+
+    typeOfContactToShow(state) {
+      return state.typeOfContactToShow;
+    },
+
+    contactToUpdate(state) {
+      return state.contactToUpdate;
+    },
+
+    showUpdateContactRolesForm(state) {
+      return state.showUpdateContactRolesForm;
     },
   },
 };

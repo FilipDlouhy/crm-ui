@@ -221,11 +221,20 @@ export default {
       }
       this.isCreating = true;
 
-      this.isCreating = await contactHelper.createContact(
-        this.currentContactForm,
-        contact,
-        this.unShowContactForm
-      );
+      (contact.created_at = new Date().toLocaleString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      })),
+        (this.isCreating = await contactHelper.createContact(
+          this.currentContactForm,
+          contact,
+          this.unShowContactForm
+        ));
     },
 
     capitalizeFirstLetter(str) {

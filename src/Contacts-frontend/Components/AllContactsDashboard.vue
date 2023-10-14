@@ -15,7 +15,7 @@
         <button
           @click="removeContacts('Dou you want to delete these contacts')"
         >
-          Remove contacts
+          Remove Contacts
 
           <i class="material-icons"> person_remove </i>
         </button>
@@ -56,6 +56,7 @@
       :add-filter-sort="addFilterSort"
       :remove-filter-sort="removeFilterSort"
       :filter-values-sort="contactFiltersSort"
+      :updateFunc="goToContactPage"
     />
     <table-view-footer
       :page="contactFirstPage"
@@ -98,7 +99,6 @@ export default {
           value: "organization_name",
           bigger: true,
           sortable: true,
-          filterable: true,
         },
         {
           displayText: "Created",
@@ -284,9 +284,25 @@ export default {
         this.$store.dispatch("getContacts");
       }
     },
+
+    goToContactPage(contact) {
+      this.$store.commit("setContactToUpdate", contact);
+      this.$router.push("/Contacts/ContactPage");
+    },
   },
   async mounted() {
-    this.$store.dispatch("getContacts");
+    await this.$store.dispatch("getContacts");
+  },
+
+  watch: {
+    contactFilters() {
+      const containsOrganizationOrPersonFilter = this.contactFilters.some(
+        (filter) => filter.filterName === "organization_or_person"
+      );
+      if (!containsOrganizationOrPersonFilter) {
+        this.personOrOrganizationValue = "all";
+      }
+    },
   },
 };
 </script>
