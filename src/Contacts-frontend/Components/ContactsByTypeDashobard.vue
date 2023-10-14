@@ -40,12 +40,7 @@
       </div>
 
       <div class="main-bar-service-button-container">
-        <button
-          v-if="
-            typeOfContactToShow === 'worker' ||
-            typeOfContactToShow === 'jobCandidate'
-          "
-        >
+        <button v-if="typeOfContactToShow === 'worker'">
           Change Seniority <span class="material-icons"> person_search </span>
         </button>
         <button
@@ -54,23 +49,29 @@
             typeOfContactToShow === 'jobCandidate'
           "
         >
-          Change Worker roles <span class="material-icons"> engineering </span>
+          {{
+            typeOfContactToShow === "worker"
+              ? "Change Worker role"
+              : "Change position to apply"
+          }}
+          <span class="material-icons"> engineering </span>
         </button>
         <button
+          @click="changeWorkerOrJobCandidateHireStatus(false)"
           v-if="
             typeOfContactToShow === 'worker' ||
             typeOfContactToShow === 'jobCandidate'
           "
         >
-          Fire <span class="material-icons"> domain_disabled </span>
+          {{ typeOfContactToShow === "worker" ? "Fire" : "Reject" }}
+          <span class="material-icons"> domain_disabled </span>
         </button>
         <button
-          v-if="
-            typeOfContactToShow === 'worker' ||
-            typeOfContactToShow === 'jobCandidate'
-          "
+          @click="changeWorkerOrJobCandidateHireStatus(true)"
+          v-if="typeOfContactToShow === 'jobCandidate'"
         >
-          Hire <span class="material-icons"> add_business </span>
+          Select
+          <span class="material-icons"> add_business </span>
         </button>
       </div>
     </div>
@@ -109,6 +110,7 @@ import TableViewFooter from "../../Dashboard/Components/Core/TableViewFooter.vue
 import { mapGetters } from "vuex";
 import AddContactForm from "./AddContactForm.vue";
 import contactHelper from "../ContactHelper";
+import axios from "axios";
 export default {
   data() {
     return {
@@ -146,6 +148,29 @@ export default {
   },
 
   methods: {
+    async changeWorkerOrJobCandidateHireStatus(isHired) {
+      if (this.contactsToChange.length === 0) {
+        return;
+      }
+      const response = await axios.post(
+        "http://localhost:5000/contact/change-contact-hire-status",
+        {
+          contactIdsToUpdate: this.contactsToChange,
+          isHired: isHired,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (!response.data.error) {
+        this.$store.dispatch("updateHireStatus", isHired);
+        this.$store.dispatch("openInfoPopUp", `Hire status Updated`);
+      } else {
+        this.$store.dispatch("openInfoPopUp", response.data.error);
+      }
+    },
+
     customerAddFormOpen() {
       this.$store.dispatch(
         "updateCurrentContactForm",
@@ -326,6 +351,19 @@ export default {
           break;
 
         case "jobCandidate":
+          this.contactTableRows.push(
+            {
+              displayText: "Worker role",
+              value: "worker_role",
+            },
+            {
+              displayText: "Hired",
+              value: "hired",
+              sortable: true,
+            }
+          );
+          break;
+
         case "worker":
           this.contactTableRows.push(
             {
@@ -348,6 +386,13 @@ export default {
   },
   async mounted() {
     this.populateContactTableRows();
+
+    if (this.typeOfContactToShow.length === 0) {
+      this.$store.commit(
+        "setTypeOfContactToShow",
+        localStorage.getItem("activeSubMenu").slice(0, -1)
+      );
+    }
     await this.$store.dispatch("getContactsByType", this.typeOfContactToShow);
   },
 

@@ -337,7 +337,10 @@ export default {
     },
 
     handleRowClick(collumnIndex) {
-      if (!this.clickable) {
+      if (
+        !this.clickable ||
+        (event.target.tagName === "INPUT" && event.target.type === "checkbox")
+      ) {
         return;
       }
 

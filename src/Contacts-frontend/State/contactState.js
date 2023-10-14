@@ -207,6 +207,17 @@ const contactState = {
       commit("setContactFirstPage", 1);
       commit("setContactLastPage", 1);
     },
+
+    updateHireStatus({ state, commit }, isHired) {
+      const updatedContacts = state.contacts.map((contact) => {
+        if (state.contactsToChange.includes(contact.contact_id)) {
+          return { ...contact, hired: isHired };
+        }
+        return contact;
+      });
+
+      commit("setConstacts", updatedContacts);
+    },
   },
 
   getters: {

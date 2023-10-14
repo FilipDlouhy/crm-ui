@@ -143,6 +143,14 @@
     <div class="contact-page-tableview-sections">
       <button>Activities</button>
       <button>Contracts</button>
+      <button
+        v-if="
+          typeOfContactToShow === 'worker' ||
+          typeOfContactToShow === 'jobCandidate'
+        "
+      >
+        Worker Contracts
+      </button>
     </div>
     <div class="contact-page-tablewiev-container"></div>
     <add-remove-role-from-contact
@@ -312,7 +320,7 @@ export default {
 
   button {
     height: 96%;
-    width: 150px;
+    width: 180px;
     outline: none;
     border: none;
     transition: 0.3s;
