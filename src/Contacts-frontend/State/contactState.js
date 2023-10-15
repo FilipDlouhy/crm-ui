@@ -218,6 +218,17 @@ const contactState = {
 
       commit("setConstacts", updatedContacts);
     },
+
+    updateSeniorityStatus({ state, commit }, seniotity) {
+      const updatedContacts = state.contacts.map((contact) => {
+        if (state.contactsToChange.includes(contact.contact_id)) {
+          return { ...contact, seniority: seniotity };
+        }
+        return contact;
+      });
+
+      commit("setConstacts", updatedContacts);
+    },
   },
 
   getters: {

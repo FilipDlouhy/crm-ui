@@ -40,10 +40,14 @@
       </div>
 
       <div class="main-bar-service-button-container">
-        <button v-if="typeOfContactToShow === 'worker'">
+        <button
+          @click="showChangeSeniority"
+          v-if="typeOfContactToShow === 'worker'"
+        >
           Change Seniority <span class="material-icons"> person_search </span>
         </button>
         <button
+          @click="showChangeRoleForm"
           v-if="
             typeOfContactToShow === 'worker' ||
             typeOfContactToShow === 'jobCandidate'
@@ -102,6 +106,39 @@
       ref="addContactForm"
       v-if="currentContactForm.length > 0"
     />
+
+    <!-- <change-value-in-table-view-form
+      v-if="showChangeWorkerRoleForm"
+      :values="[
+        { name: 'God emperor' },
+        { name: 'Kaiser' },
+        { name: 'Backend dev' },
+      ]"
+      :value-to-display="'name'"
+      :update-button-text="'Update worker role'"
+      :form-title="'Update worker role'"
+      :update-func="updateWorkerRoles"
+      @unshowTableViewForm="handleUnshowFormWorkerRole"
+    /> -->
+
+    <change-value-in-table-view-form
+      v-if="showChangeSeniorityForm"
+      :values="[
+        { seniorityLevel: 'Junior' },
+        { seniorityLevel: 'Medior' },
+        { seniorityLevel: 'Senior' },
+      ]"
+      :value-to-display="'seniorityLevel'"
+      @unshowTableViewForm="handleUnshowFormSeniority"
+      :update-button-text="'Update seniority'"
+      :form-title="'Update seniority level'"
+      @removeFromChangedValues="removeSeniority"
+      :onlyOne="true"
+      @valuesChanged="handleSeniorityToChange"
+      :value-to-filter-inner-array="'seniorityLevel'"
+      :update-func="updateSeniority"
+      @unshowFormFromParent="unshowChangeSeniorityForm"
+    />
   </div>
 </template>
 <script>
@@ -110,6 +147,7 @@ import TableViewFooter from "../../Dashboard/Components/Core/TableViewFooter.vue
 import { mapGetters } from "vuex";
 import AddContactForm from "./AddContactForm.vue";
 import contactHelper from "../ContactHelper";
+import ChangeValueInTableViewForm from "../../Dashboard/Components/Forms/ChangeValueInTableViewForm.vue";
 import axios from "axios";
 export default {
   data() {
@@ -121,12 +159,14 @@ export default {
       chosenFormText: "",
       personOrOrganizationValue: "",
       unShowFormFunction: undefined,
+      seniorityToUpdate: "",
     };
   },
   components: {
     TableView,
     TableViewFooter,
     AddContactForm,
+    ChangeValueInTableViewForm,
   },
 
   computed: {
@@ -144,6 +184,8 @@ export default {
       contactFirstPage: "contactFirstPage",
       contactLastPage: "contactLastPage",
       typeOfContactToShow: "typeOfContactToShow",
+      showChangeWorkerRoleForm: "showChangeWorkerRoleForm",
+      showChangeSeniorityForm: "showChangeSeniorityForm",
     }),
   },
 
@@ -383,6 +425,65 @@ export default {
           break;
       }
     },
+
+    showChangeRoleForm() {
+      this.$store.commit("setShowChangeWorkerRoleForm", true);
+    },
+    showChangeSeniority() {
+      this.$store.commit("setShowChangeSeniorityForm", true);
+    },
+
+    handleUnshowFormWorkerRole(value) {
+      setTimeout(() => {
+        this.$store.commit("setShowChangeWorkerRoleForm", value);
+      }, 500);
+    },
+
+    updateWorkerRoles() {},
+
+    handleUnshowFormSeniority(value) {
+      setTimeout(() => {
+        this.$store.commit("setShowChangeSeniorityForm", value);
+      }, 500);
+    },
+
+    handleSeniorityToChange(value) {
+      this.seniorityToUpdate = value[0]?.seniorityLevel;
+    },
+    async updateSeniority() {
+      if (
+        this.seniorityToUpdate.length === 0 ||
+        this.seniorityToUpdate.length === undefined
+      ) {
+        return;
+      }
+
+      const response = await axios.post(
+        "http://localhost:5000/contact/change-seniority",
+        {
+          contactIdsToUpdate: this.contactsToChange,
+          seniorityLevel: this.seniorityToUpdate,
+        },
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (!response.data.error) {
+        this.$store.dispatch("openInfoPopUp", `Seniority updated`);
+        this.$store.dispatch("updateSeniorityStatus", this.seniorityToUpdate);
+
+        this.unshowChangeSeniorityForm();
+      } else {
+        this.$store.dispatch("openInfoPopUp", response.data.error);
+      }
+    },
+
+    unshowChangeSeniorityForm() {
+      this.$emit("unshowFormFromParent");
+    },
+
+    removeSeniority() {},
   },
   async mounted() {
     this.populateContactTableRows();
